@@ -1,0 +1,25 @@
+namespace PigeonAPI;
+
+/// <summary>
+/// The image file as uploaded from the web client
+/// </summary>
+public class ImageUpload
+{
+    /// <summary>
+    /// The X coordinate of the center
+    /// </summary>
+    /// <value></value>
+    public int X { get; set; }
+
+    /// <summary>
+    /// The X coordinate of the center
+    /// </summary>
+    /// <value></value>
+    public int Y { get; set; }
+
+    /// <summary>
+    /// The Base64 encoded DataUri of the image
+    /// </summary>
+    /// <value></value>
+    public string? DataUri { get; set; }
+}
