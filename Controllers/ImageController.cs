@@ -54,7 +54,11 @@ public class ImageController : ControllerBase
                 MachineLearning.Constants.ImageHeight);
         })();
 
+        this._logger.LogInformation($"Image processed and written to: {filePath}");
+
         string response = MachineLearning.ExternalProcessing.MakeInference(filePath);
+
+        this._logger.LogDebug("Image inference complete.");
 
         return Ok(response);
     }
