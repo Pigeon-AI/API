@@ -21,5 +21,5 @@ public class ImageUpload
     /// The Base64 encoded DataUri of the image
     /// </summary>
     /// <value></value>
-    public string? DataUri { get; set; }
+    public string? ImageUri { get; set; }
 }

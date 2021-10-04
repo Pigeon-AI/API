@@ -30,10 +30,11 @@ public class ImageController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<string>> Post(ImageUpload upload)
     {
-        if (String.IsNullOrEmpty(upload.DataUri) ||
+        if (String.IsNullOrEmpty(upload.ImageUri) ||
             upload.X < 0 ||
             upload.Y < 0)
         {
+            this._logger.LogDebug("Received bad request.");
             return BadRequest();
         }
 
@@ -42,7 +43,7 @@ public class ImageController : ControllerBase
         string filePath = await new Func<Task<string>>(async () =>
         {
             // regex match out the actually binary data from the data uri
-            var matchGroups = Regex.Match(upload.DataUri, @"^data:((?<type>[\w\/]+))?;base64,(?<data>.+)$").Groups;
+            var matchGroups = Regex.Match(upload.ImageUri, @"^data:((?<type>[\w\/]+))?;base64,(?<data>.+)$").Groups;
             var base64Data = matchGroups["data"].Value;
             var binData = Convert.FromBase64String(base64Data);
 
