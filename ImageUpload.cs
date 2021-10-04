@@ -9,13 +9,13 @@ public class ImageUpload
     /// The X coordinate of the center
     /// </summary>
     /// <value></value>
-    public int X { get; set; }
+    public double X { get; set; }
 
     /// <summary>
     /// The X coordinate of the center
     /// </summary>
     /// <value></value>
-    public int Y { get; set; }
+    public double Y { get; set; }
 
     /// <summary>
     /// The Base64 encoded DataUri of the image

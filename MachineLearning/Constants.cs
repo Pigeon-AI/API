@@ -8,10 +8,10 @@ public static class Constants
     /// <summary>
     /// The width of all images being processed
     /// </summary>
-    public const int ImageWidth = 300;
+    public const int ImageWidth = 50;
 
     /// <summary>
     /// The height of all images being processed
     /// </summary>
-    public const int ImageHeight = 300;
+    public const int ImageHeight = 50;
 }

@@ -49,7 +49,7 @@ public class ImageController : ControllerBase
             // preprocess the image and save to disk
             return await MachineLearning.PreProcessing.PreprocessImage(
                 new MemoryStream(binData),
-                new SixLabors.ImageSharp.Point(x: upload.X, y: upload.Y),
+                new SixLabors.ImageSharp.Point(x: (int)upload.X, y: (int)upload.Y),
                 MachineLearning.Constants.ImageWidth,
                 MachineLearning.Constants.ImageHeight);
         })();
