@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace InventoryManagement.Controllers;
+namespace PigeonAPI.Controllers;
 
 /// <summary>
 /// Class to handle all requests on the / route
@@ -21,6 +22,13 @@ public class BaseController : ControllerBase
     public BaseController(ILogger<BaseController> logger)
     {
         _logger = logger;
+
+        // ensure that the database is created/connected to properly
+        using(var db = new DatabaseAccess(logger))
+        {
+            db.Database.EnsureCreated();
+            db.Database.Migrate();
+        };
     }
 
     /// <summary>
