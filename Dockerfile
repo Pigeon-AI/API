@@ -14,4 +14,4 @@ WORKDIR /app
 
 EXPOSE 80
 
-CMD ./BlazorChat.Server
+CMD ./PigeonAPI
