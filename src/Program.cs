@@ -10,6 +10,12 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "PigeonAPI", Version = "v1" });
 });
 
+builder.Logging.AddSimpleConsole(options =>
+                    {
+                        // needs this or docker logs get super messed up
+                        options.SingleLine = false;
+                    });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

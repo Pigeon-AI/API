@@ -1,15 +1,7 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build
+# syntax = edrevo/dockerfile-plus
 
-COPY ./src /src
+# include common stuff from base file
+INCLUDE+ Dockerfile.base
 
-WORKDIR /src
-
-RUN dotnet publish . -o /app -c Release
-
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine
-
-COPY --from=build /app /app
-
-WORKDIR /app
-
-CMD dotnet PigeonAPI.dll
+# This is the regular port config
+CMD ./PigeonAPI
