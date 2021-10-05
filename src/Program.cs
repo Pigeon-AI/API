@@ -26,13 +26,4 @@ app.UseAuthorization();
 // map the different api controllers
 app.MapControllers();
 
-// add basic hello world base path to check if it's up
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapGet("/", async context =>
-    {
-        await context.Response.WriteAsync("Hello World!");
-    });
-});
-
 app.Run();
