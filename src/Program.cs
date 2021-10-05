@@ -19,13 +19,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PigeonAPI v1"));
 }
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
 
-// need to read the port from the environment for heroku to work properly
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-
-app.Run($"http://localhost:{port}");
+app.Run();

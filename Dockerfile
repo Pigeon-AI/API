@@ -12,4 +12,5 @@ COPY --from=build /app /app
 
 WORKDIR /app
 
-CMD ./PigeonAPI
+# heroku uses the following
+CMD ASPNETCORE_URLS=http://*:$PORT dotnet PigeonAPI.dll
