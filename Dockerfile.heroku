@@ -1,7 +1,0 @@
-# syntax = edrevo/dockerfile-plus
-
-# include common stuff from base file
-INCLUDE+ Dockerfile.base
-
-# heroku needs the following port config
-CMD ASPNETCORE_URLS=http://*:$PORT ./PigeonAPI
