@@ -42,6 +42,6 @@ jobs:
         with:
           push: true
           platforms: linux/amd64
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository }}:latest
           cache-to: type=inline
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}:latest
