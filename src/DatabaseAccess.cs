@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using PigeonAPI.Models;
 
 namespace PigeonAPI;
 
@@ -10,7 +11,7 @@ public class DatabaseAccess : DbContext
     /// <summary>
     /// A database table with all items
     /// </summary>
-    public DbSet<byte[]> Images { get; set; } = null!;
+    public DbSet<DatabaseImage> Images { get; set; } = null!;
 
     /// <summary>
     /// ASP.Net core required: logger

@@ -26,7 +26,8 @@ public class BaseController : ControllerBase
         // ensure that the database is created/connected to properly
         using(var db = new DatabaseAccess(logger))
         {
-            db.Database.EnsureCreated();
+            // Not needed because Migrate is correct here
+            // db.Database.EnsureCreated();
             db.Database.Migrate();
         };
     }

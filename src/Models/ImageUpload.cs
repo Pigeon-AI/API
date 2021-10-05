@@ -1,4 +1,4 @@
-namespace PigeonAPI;
+namespace PigeonAPI.Models;
 
 /// <summary>
 /// The image file as uploaded from the web client

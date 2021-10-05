@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Text.RegularExpressions;
+using PigeonAPI.Models;
 
 namespace PigeonAPI.Controllers;
 
@@ -61,6 +62,20 @@ public class ImageController : ControllerBase
         string response = MachineLearning.ExternalProcessing.MakeInference(filePath);
 
         this._logger.LogDebug("Image inference complete.");
+
+        
+
+        // Store image and response for future training / use
+        using (var db = new DatabaseAccess(this._logger)) {
+            byte[] imageData = System.IO.File.ReadAllBytes(filePath);
+
+            await db.Images.AddAsync(new DatabaseImage {
+                ImageData = imageData,
+                Inference = null,
+            });
+
+            await db.SaveChangesAsync();
+        }
 
         return Ok(response);
     }
