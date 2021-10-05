@@ -52,7 +52,8 @@ public class ImageController : ControllerBase
                 new MemoryStream(binData),
                 new SixLabors.ImageSharp.Point(x: (int)upload.X, y: (int)upload.Y),
                 MachineLearning.Constants.ImageWidth,
-                MachineLearning.Constants.ImageHeight);
+                MachineLearning.Constants.ImageHeight,
+                new SixLabors.ImageSharp.Size((int)upload.WindowWidth, (int)upload.WindowHeight));
         })();
 
         this._logger.LogInformation($"Image processed and written to: {filePath}");

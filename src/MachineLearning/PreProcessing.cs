@@ -29,7 +29,12 @@ public static class PreProcessing
     /// <param name="imageStream">A stream with the image data</param>
     /// <param name="center">The point we want as center in the new image</param>
     /// <returns></returns>
-    public static async Task<string> PreprocessImage(Stream imageStream, Point center, int newWidth, int newHeight)
+    public static async Task<string> PreprocessImage(
+        Stream imageStream,
+        Point center,
+        int newWidth,
+        int newHeight,
+        Size windowSize)
     {
         // the new desired starting points on the left and top
         int left = center.X - newWidth / 2;
@@ -40,19 +45,25 @@ public static class PreProcessing
         await using (var outStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
         using (var image = await Image.LoadAsync(imageStream))
         {
-            var size = image.Size();
+            Size originalSize = image.Size();
 
             // apply image edits
             image.Mutate(i =>
             {
+                // resize if the dimensions are different due to a high dpi screen
+                if (originalSize != windowSize) {
+                    i.Resize(windowSize);
+                }
+
                 // calculate the extra padded needed, 0 if none
-                int leftNeededPadding = Math.Max(0, Math.Max(left * -1, left + newWidth - size.Width));
-                int topNeededPadding = Math.Max(0, Math.Max(top * -1, top + newHeight - size.Height));
+                int leftNeededPadding = Math.Max(0, Math.Max(newWidth/2 - center.X, left + newWidth - windowSize.Width));
+                int topNeededPadding = Math.Max(0, Math.Max(newHeight/2 - center.Y, top + newHeight - windowSize.Height));
 
                 // add the extra padding if needed
                 if (leftNeededPadding > 0 || topNeededPadding > 0)
                 {
-                    i.Pad(size.Width + 2 * leftNeededPadding, size.Height + 2 * topNeededPadding)
+                    Console.WriteLine("Padding");
+                    i.Pad(windowSize.Width + 2 * leftNeededPadding, windowSize.Height + 2 * topNeededPadding)
                     .BackgroundColor(new Rgba32(255, 255, 255));
 
                     // adjust the top and left coords to account for the shift

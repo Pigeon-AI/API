@@ -18,6 +18,18 @@ public class ImageUpload
     public double Y { get; set; }
 
     /// <summary>
+    /// The X coordinate of the center
+    /// </summary>
+    /// <value></value>
+    public double WindowWidth { get; set; }
+
+    /// <summary>
+    /// The X coordinate of the center
+    /// </summary>
+    /// <value></value>
+    public double WindowHeight { get; set; }
+
+    /// <summary>
     /// The Base64 encoded DataUri of the image
     /// </summary>
     /// <value></value>
