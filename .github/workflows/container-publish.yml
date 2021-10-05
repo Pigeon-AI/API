@@ -14,6 +14,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  PACKAGE_NAME: pigeon-ai/api
 
 jobs:
   build-package:
@@ -39,6 +40,6 @@ jobs:
         with:
           push: true
           platforms: linux/amd64
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository }}:latest
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.PACKAGE_NAME }}:latest
           cache-to: type=inline
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}:latest
+          tags: ${{ env.REGISTRY }}/${{ env.PACKAGE_NAME }}:latest
