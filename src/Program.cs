@@ -10,6 +10,7 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "PigeonAPI", Version = "v1" });
 });
 
+
 builder.Logging.AddSimpleConsole(options =>
                     {
                         // needs this or docker logs get super messed up
@@ -19,11 +20,11 @@ builder.Logging.AddSimpleConsole(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PigeonAPI v1"));
-}
+// if (app.Environment.IsDevelopment())
+// {
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PigeonAPI v1"));
+// }
 
 app.UseHttpsRedirection();
 
