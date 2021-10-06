@@ -38,11 +38,9 @@ app.MapControllers();
 // ensure that the database is created/connected to properly
 using(var db = new DatabaseAccess(app.Logger))
 {
-    // Not needed because Migrate is correct here
-    // db.Database.EnsureCreated();
-
-    app.Logger.LogDebug("Making database migrations.");
-    db.Database.Migrate();
+    // I don't really know what I'm doing but this works
+    db.Database.EnsureCreated();
+    // db.Database.Migrate();
 };
 
 // must be last thing in this file
