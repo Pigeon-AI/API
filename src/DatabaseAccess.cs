@@ -39,6 +39,8 @@ public class DatabaseAccess : DbContext
         {
             this._logger.LogDebug("Database URL found successfully, using Heroku Postgresql");
             options.UseNpgsql(PostgresConnectionString(databaseUrl));
+
+            this._logger.LogDebug("Engaging Postgresql connection.");
         }
         else
         {
@@ -47,6 +49,8 @@ public class DatabaseAccess : DbContext
             // Put it in a folder with the executables running this
             string dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "db.sqlite3");
             options.UseSqlite($"Data Source={dbPath}");
+
+            this._logger.LogDebug($"Engaging Sqlite connection to path {dbPath}");
         }
     }
 

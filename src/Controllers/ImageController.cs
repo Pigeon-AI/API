@@ -67,8 +67,6 @@ public class ImageController : ControllerBase
 
         this._logger.LogDebug("Image inference complete.");
 
-        
-
         // Store image and response for future training / use
         using (var db = new DatabaseAccess(this._logger)) {
             byte[] imageData = System.IO.File.ReadAllBytes(filePath);
