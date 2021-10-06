@@ -9,13 +9,13 @@ public class ImageUpload
     /// The X coordinate of the center
     /// </summary>
     /// <value></value>
-    public double X { get; set; }
+    public double ElementCenterX { get; set; }
 
     /// <summary>
     /// The X coordinate of the center
     /// </summary>
     /// <value></value>
-    public double Y { get; set; }
+    public double ElementCenterY { get; set; }
 
     /// <summary>
     /// The X coordinate of the center
@@ -30,8 +30,20 @@ public class ImageUpload
     public double WindowHeight { get; set; }
 
     /// <summary>
+    /// The X coordinate of the center
+    /// </summary>
+    /// <value></value>
+    public double ElementWidth { get; set; }
+
+    /// <summary>
+    /// The X coordinate of the center
+    /// </summary>
+    /// <value></value>
+    public double ElementHeight { get; set; }
+
+    /// <summary>
     /// The Base64 encoded DataUri of the image
     /// </summary>
     /// <value></value>
-    public string? ImageUri { get; set; }
+    public string ImageUri { get; set; }
 }

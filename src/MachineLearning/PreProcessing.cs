@@ -13,7 +13,8 @@ public static class PreProcessing
     /// Randomly generate a temp directory to store images in
     /// </summary>
     /// <returns>The path of this folder</returns>
-    private static readonly Lazy<string> tempFileDirectory = new(() => {
+    private static readonly Lazy<string> tempFileDirectory = new(() =>
+    {
         string rootPath = Path.GetTempPath();
         string newDir = Path.Combine(rootPath, Guid.NewGuid().ToString());
 
@@ -32,13 +33,73 @@ public static class PreProcessing
     public static async Task<string> PreprocessImage(
         Stream imageStream,
         Point center,
-        int newWidth,
-        int newHeight,
-        Size windowSize)
+        Size elementSize,
+        Size windowSize,
+        ILogger logger)
     {
+        // start by assuming the element will fit and no resizing will be
+        // necessary at the end
+        Size newSize = Constants.ImageSize;
+        bool needsEndResizing = false;
+
+        // determine whether the element is too large and we must crop
+        // to a wider bounds and then shrink down later
+        if (elementSize.Width + 2 * Constants.MinimumBuffer > Constants.ImageSize.Width ||
+            elementSize.Height + 2 * Constants.MinimumBuffer > Constants.ImageSize.Height)
+        {
+            logger.LogDebug("Element is too large, applying alternate bounds");
+
+            // mark bool for later that it'll need to get shrunk a bit extra at the end
+            needsEndResizing = true;
+            
+            // must figure out whether it's "more wide" or "more tall" based on aspect ratio
+            double existingAspectRatio = ((double)elementSize.Width) / elementSize.Height;
+            double desiredAspectRatio = ((double)Constants.ImageSize.Width) / Constants.ImageSize.Height;
+
+            // element is "too wide"
+            // Make the new width the element width plus the padding on either side
+            // size the new height according to the aspect ratio
+            if (existingAspectRatio > desiredAspectRatio)
+            {
+                newSize = new Size {
+                    Width = elementSize.Width + 2 * Constants.MinimumBuffer
+                };
+                newSize.Height = (int)(newSize.Width / desiredAspectRatio);
+
+                // double check that this calculation was done correctly
+                // and the new height is big enough to contain the element
+                if (newSize.Height < elementSize.Height + 2 * Constants.MinimumBuffer) {
+                    throw new Exception("Should never happen, code written wrong.");
+                }
+            }
+            else 
+
+            // other way around, make the new height the element height plus the padding
+            // size the width according to the aspect ratio
+            {
+                newSize = new Size {
+                    Height = elementSize.Height + 2 * Constants.MinimumBuffer
+                };
+                newSize.Width = (int)(newSize.Height * desiredAspectRatio);
+
+                // double check that this calculation was done correctly
+                // and the new height is big enough to contain the element
+                if (newSize.Width < elementSize.Width + 2 * Constants.MinimumBuffer) {
+                    throw new Exception("Should never happen, code written wrong.");
+                }
+            }
+        }
+
+        /*
+            at this point in the code we now know what size we want to crop and pad too
+            we know that size will be a proper aspect ratio of the final desired size
+            and we also know whether that size is equal to the final size
+            if it's not we'll have to shrink it down at the end
+        */
+
         // the new desired starting points on the left and top
-        int left = center.X - newWidth / 2;
-        int top = center.Y - newHeight / 2;
+        int left = center.X - newSize.Width / 2;
+        int top = center.Y - newSize.Height / 2;
 
         string filePath = Path.Combine(tempFileDirectory.Value, $"{Guid.NewGuid().ToString()}.jpg");
 
@@ -47,22 +108,24 @@ public static class PreProcessing
         {
             Size originalSize = image.Size();
 
-            // apply image edits
+            // apply the actual image edits in a pipeline
             image.Mutate(i =>
             {
                 // resize if the dimensions are different due to a high dpi screen
-                if (originalSize != windowSize) {
+                // this must be done first otherwise the calculations get nuts
+                if (originalSize != windowSize)
+                {
                     i.Resize(windowSize);
                 }
 
                 // calculate the extra padded needed, 0 if none
-                int leftNeededPadding = Math.Max(0, Math.Max(newWidth/2 - center.X, left + newWidth - windowSize.Width));
-                int topNeededPadding = Math.Max(0, Math.Max(newHeight/2 - center.Y, top + newHeight - windowSize.Height));
+                int leftNeededPadding = Math.Max(0, Math.Max(newSize.Width / 2 - center.X, left + newSize.Width - windowSize.Width));
+                int topNeededPadding = Math.Max(0, Math.Max(newSize.Height / 2 - center.Y, top + newSize.Height - windowSize.Height));
 
                 // add the extra padding if needed
                 if (leftNeededPadding > 0 || topNeededPadding > 0)
                 {
-                    Console.WriteLine("Padding");
+                    logger.LogDebug("Padding the image");
                     i.Pad(windowSize.Width + 2 * leftNeededPadding, windowSize.Height + 2 * topNeededPadding)
                     .BackgroundColor(new Rgba32(255, 255, 255));
 
@@ -72,7 +135,14 @@ public static class PreProcessing
                 }
 
                 // crop the image to desired bounds
-                i.Crop(new Rectangle(x: left, y: top, width: newWidth, height: newHeight));
+                i.Crop(new Rectangle(x: left, y: top, newSize.Width, newSize.Height));
+
+                // finally, if our element was too big early and the current 
+                // size must be shrunk down, do it here
+                if (needsEndResizing)
+                {
+                    i.Resize(Constants.ImageSize);
+                }
             });
             await image.SaveAsJpegAsync(outStream);
         }

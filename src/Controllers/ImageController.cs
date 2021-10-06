@@ -32,11 +32,15 @@ public class ImageController : ControllerBase
     public async Task<ActionResult<string>> Post(ImageUpload upload)
     {
         if (String.IsNullOrEmpty(upload.ImageUri) ||
-            upload.X < 0 ||
-            upload.Y < 0)
+            upload.ElementCenterX < 0 ||
+            upload.ElementCenterY < 0 ||
+            upload.ElementWidth < 0 ||
+            upload.ElementHeight < 0 ||
+            upload.WindowWidth < 0 ||
+            upload.WindowHeight < 0)
         {
             this._logger.LogDebug("Received bad request.");
-            return BadRequest();
+            return BadRequest("Malformed ImageUpload");
         }
 
         // file path of preprocessed image
@@ -51,10 +55,10 @@ public class ImageController : ControllerBase
             // preprocess the image and save to disk
             return await MachineLearning.PreProcessing.PreprocessImage(
                 new MemoryStream(binData),
-                new SixLabors.ImageSharp.Point(x: (int)upload.X, y: (int)upload.Y),
-                MachineLearning.Constants.ImageWidth,
-                MachineLearning.Constants.ImageHeight,
-                new SixLabors.ImageSharp.Size((int)upload.WindowWidth, (int)upload.WindowHeight));
+                new SixLabors.ImageSharp.Point(x: (int)upload.ElementCenterX, y: (int)upload.ElementCenterY),
+                new SixLabors.ImageSharp.Size(width: (int)upload.ElementWidth, height: (int)upload.ElementHeight),
+                new SixLabors.ImageSharp.Size(width: (int)upload.WindowWidth, height: (int)upload.WindowHeight),
+                logger: this._logger);
         })();
 
         this._logger.LogInformation($"Image processed and written to: {filePath}");
