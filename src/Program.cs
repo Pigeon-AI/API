@@ -1,4 +1,6 @@
 using Microsoft.OpenApi.Models;
+using PigeonAPI;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,4 +35,15 @@ app.UseAuthorization();
 // map the different api controllers
 app.MapControllers();
 
+// ensure that the database is created/connected to properly
+using(var db = new DatabaseAccess(app.Logger))
+{
+    // Not needed because Migrate is correct here
+    // db.Database.EnsureCreated();
+
+    app.Logger.LogDebug("Making database migrations.");
+    db.Database.Migrate();
+};
+
+// must be last thing in this file
 app.Run();

@@ -55,9 +55,9 @@ public class DatabaseAccess : DbContext
     }
 
     /// <summary>
-    /// 
+    /// A function to convert the heroku postgres environment variable to a valid connection string
     /// </summary>
-    private string PostgresConnectionString(string envDatabaseUrl)
+    private static string PostgresConnectionString(string envDatabaseUrl)
         {
             // get heroku environment variable
             string connectionString = envDatabaseUrl;

@@ -22,14 +22,6 @@ public class BaseController : ControllerBase
     public BaseController(ILogger<BaseController> logger)
     {
         _logger = logger;
-
-        // ensure that the database is created/connected to properly
-        using(var db = new DatabaseAccess(logger))
-        {
-            // Not needed because Migrate is correct here
-            // db.Database.EnsureCreated();
-            db.Database.Migrate();
-        };
     }
 
     /// <summary>
