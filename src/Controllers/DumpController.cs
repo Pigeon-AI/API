@@ -52,7 +52,8 @@ public class DumpController : ControllerBase
         
         byte[]? imageData = await db.Images
             .Where(i => i.Id == id)
-            .Select(i => i.ImageData).FirstAsync();
+            .Select(i => i.ImageData)
+            .FirstOrDefaultAsync();
 
         if (imageData == null)
         {
