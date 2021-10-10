@@ -36,8 +36,7 @@ public class DumpController : ControllerBase
         // ensure that the database is created/connected to properly
         using var db = new DatabaseAccess(this._logger);
         
-        long[] ids = await db.Images.Select(i => i.Id)
-            .ToArrayAsync().ConfigureAwait(false);
+        long[] ids = await db.Images.Select(i => i.Id).ToArrayAsync();
         
         return Ok(new ImageIdsResponse(ids));
     }
@@ -53,8 +52,7 @@ public class DumpController : ControllerBase
         
         DatabaseImage image = await db.Images
             .Where(i => i.Id == id)
-            .FirstOrDefaultAsync()
-            .ConfigureAwait(false);
+            .FirstOrDefaultAsync();
 
         if (image == null)
         {
@@ -79,8 +77,7 @@ public class DumpController : ControllerBase
         byte[]? imageData = await db.Images
             .Where(i => i.Id == id)
             .Select(i => i.ImageData)
-            .FirstOrDefaultAsync()
-            .ConfigureAwait(false);
+            .FirstOrDefaultAsync();
 
         if (imageData == null)
         {

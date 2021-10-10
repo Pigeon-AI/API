@@ -59,11 +59,11 @@ public class ImageController : ControllerBase
                 new SixLabors.ImageSharp.Point(x: (int)upload.ElementCenterX, y: (int)upload.ElementCenterY),
                 new SixLabors.ImageSharp.Size(width: (int)upload.ElementWidth, height: (int)upload.ElementHeight),
                 new SixLabors.ImageSharp.Size(width: (int)upload.WindowWidth, height: (int)upload.WindowHeight),
-                logger: this._logger).ConfigureAwait(false);
-        })().ConfigureAwait(false);
+                logger: this._logger);
+        })();
 
-        string outerHTML = await MachineLearning.PreProcessing.PreprocessHTML(upload.OuterHTML).ConfigureAwait(false);
-        string? pageSource = upload.PageSource == null ? null : await MachineLearning.PreProcessing.PreprocessHTML(upload.PageSource).ConfigureAwait(false);
+        string outerHTML = await MachineLearning.PreProcessing.PreprocessHTML(upload.OuterHTML);
+        string? pageSource = upload.PageSource == null ? null : await MachineLearning.PreProcessing.PreprocessHTML(upload.PageSource);
 
         this._logger.LogInformation($"Image processed and written to: {filePath}");
 
@@ -84,9 +84,9 @@ public class ImageController : ControllerBase
             };
 
             // add it to the database
-            await db.Images.AddAsync(dbItem).ConfigureAwait(false);
+            await db.Images.AddAsync(dbItem);
 
-            await db.SaveChangesAsync().ConfigureAwait(false);
+            await db.SaveChangesAsync();
         }
 
         return Ok(response);

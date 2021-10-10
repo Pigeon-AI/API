@@ -104,7 +104,7 @@ public static class PreProcessing
         string filePath = Path.Combine(tempFileDirectory.Value, $"{Guid.NewGuid().ToString()}.jpg");
 
         await using (var outStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
-        using (var image = await Image.LoadAsync(imageStream).ConfigureAwait(false))
+        using (var image = await Image.LoadAsync(imageStream))
         {
             Size originalSize = image.Size();
 
@@ -144,7 +144,7 @@ public static class PreProcessing
                     i.Resize(Constants.ImageSize);
                 }
             });
-            await image.SaveAsJpegAsync(outStream).ConfigureAwait(false);
+            await image.SaveAsJpegAsync(outStream);
         }
 
         return filePath;
