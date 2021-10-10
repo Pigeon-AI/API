@@ -32,6 +32,7 @@ public class ImageController : ControllerBase
     public async Task<ActionResult<string>> Post(ImageUpload upload)
     {
         if (String.IsNullOrEmpty(upload.ImageUri) ||
+            String.IsNullOrEmpty(upload.OuterHTML) ||
             upload.ElementCenterX < 0 ||
             upload.ElementCenterY < 0 ||
             upload.ElementWidth < 0 ||
@@ -58,8 +59,11 @@ public class ImageController : ControllerBase
                 new SixLabors.ImageSharp.Point(x: (int)upload.ElementCenterX, y: (int)upload.ElementCenterY),
                 new SixLabors.ImageSharp.Size(width: (int)upload.ElementWidth, height: (int)upload.ElementHeight),
                 new SixLabors.ImageSharp.Size(width: (int)upload.WindowWidth, height: (int)upload.WindowHeight),
-                logger: this._logger);
-        })();
+                logger: this._logger).ConfigureAwait(false);
+        })().ConfigureAwait(false);
+
+        string outerHTML = await MachineLearning.PreProcessing.PreprocessHTML(upload.OuterHTML).ConfigureAwait(false);
+        string? pageSource = upload.PageSource == null ? null : await MachineLearning.PreProcessing.PreprocessHTML(upload.PageSource).ConfigureAwait(false);
 
         this._logger.LogInformation($"Image processed and written to: {filePath}");
 
@@ -69,14 +73,20 @@ public class ImageController : ControllerBase
 
         // Store image and response for future training / use
         using (var db = new DatabaseAccess(this._logger)) {
+
+            // read the image into memory to be stored persistently in the database
             byte[] imageData = System.IO.File.ReadAllBytes(filePath);
 
-            await db.Images.AddAsync(new DatabaseImage {
-                ImageData = imageData,
+            // Create stored database item
+            var dbItem = new DatabaseImage(imageData: imageData, outerHTML: outerHTML) {
                 Inference = null,
-            });
+                PageSource = pageSource,
+            };
 
-            await db.SaveChangesAsync();
+            // add it to the database
+            await db.Images.AddAsync(dbItem).ConfigureAwait(false);
+
+            await db.SaveChangesAsync().ConfigureAwait(false);
         }
 
         return Ok(response);

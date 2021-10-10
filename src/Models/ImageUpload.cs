@@ -46,4 +46,16 @@ public class ImageUpload
     /// </summary>
     /// <value></value>
     public string? ImageUri { get; set; }
+
+    /// <summary>
+    /// The element.outerHTML field of the selected element
+    /// </summary>
+    /// <value></value>
+    public string? OuterHTML { get; set; }
+
+    /// <summary>
+    /// The entire html of the webpage
+    /// </summary>
+    /// <value></value>
+    public string? PageSource { get; set; }
 }
