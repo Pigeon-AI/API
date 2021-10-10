@@ -6,5 +6,8 @@ GET {{url}} HTTP/1.1
 ### Get a list of all images in the database
 GET {{url}}/dump/ HTTP/1.1
 
-### Get a specific image
+### Get a specific image's data
 GET {{url}}/dump/id/1 HTTP/1.1
+
+### Get a specific image
+GET {{url}}/dump/image/id/1 HTTP/1.1
