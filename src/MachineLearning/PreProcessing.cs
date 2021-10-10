@@ -157,6 +157,8 @@ public static class PreProcessing
     /// <returns></returns>
     public static async Task<string> PreprocessHTML(string html)
     {
+        await Task.Run(() => {});
+
         return html;
     }
 }

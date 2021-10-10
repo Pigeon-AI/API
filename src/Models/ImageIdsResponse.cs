@@ -9,14 +9,7 @@ public class ImageIdsResponse
     /// All Id's of images in the database
     /// </summary>
     /// <value></value>
-    public long[] Ids { get; private set; } = null!;
-
-    /// <summary>
-    /// Private constructor needed by entity framework reflection
-    /// </summary>
-    private ImageIdsResponse()
-    {
-    }
+    public long[] Ids { get; }
 
     /// <summary>
     /// Main constructor

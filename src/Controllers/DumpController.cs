@@ -43,11 +43,36 @@ public class DumpController : ControllerBase
     }
 
     /// <summary>
-    /// Respond to a GET request on a specific Item
+    /// Respond to a GET request on a specific Image
     /// </summary>
     /// <returns>Details for that Item</returns>
     [HttpGet("id/{id}")]
-    public async Task<IActionResult> Get(long id)
+    public async Task<ActionResult<ImageResponse>> GetImageData(long id)
+    {
+        using var db = new DatabaseAccess(this._logger);
+        
+        DatabaseImage image = await db.Images
+            .Where(i => i.Id == id)
+            .FirstOrDefaultAsync()
+            .ConfigureAwait(false);
+
+        if (image == null)
+        {
+            return BadRequest("Image with that id not found");
+        }
+
+        return new ImageResponse(imageUri: $"image/id/{id}", outerHTML: image.OuterHTML) {
+            Inference = image.Inference,
+            PageSource = image.PageSource
+        };
+    }
+
+    /// <summary>
+    /// Get the actual image data
+    /// </summary>
+    /// <returns>Details for that Item</returns>
+    [HttpGet("image/id/{id}")]
+    public async Task<IActionResult> GetImage(long id)
     {
         using var db = new DatabaseAccess(this._logger);
         
