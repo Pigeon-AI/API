@@ -67,18 +67,23 @@ public class ImageController : ControllerBase
 
         this._logger.LogInformation($"Image processed and written to: {filePath}");
 
-        string response = MachineLearning.ExternalProcessing.MakeInference(filePath);
+        // Get ocr metadata for the image
+        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(filePath);
 
-        this._logger.LogDebug("Image inference complete.");
+        this._logger.LogDebug("Image ocr complete.");
 
         // Store image and response for future training / use
-        using (var db = new DatabaseAccess(this._logger)) {
-
+        using (var db = new DatabaseAccess(this._logger))
+        {
             // read the image into memory to be stored persistently in the database
             byte[] imageData = System.IO.File.ReadAllBytes(filePath);
 
             // Create stored database item
-            var dbItem = new DatabaseImage(imageData: imageData, outerHTML: outerHTML) {
+            var dbItem = new DatabaseImage(
+                imageData: imageData,
+                outerHTML: outerHTML,
+                imageOcrData: ocrData)
+            {
                 Inference = null,
                 PageSource = pageSource,
             };
@@ -88,6 +93,8 @@ public class ImageController : ControllerBase
 
             await db.SaveChangesAsync();
         }
+
+        string response = "This is a sample response.";
 
         return Ok(response);
     }

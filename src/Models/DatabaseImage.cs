@@ -20,6 +20,11 @@ public class DatabaseImage
     public byte[] ImageData { get; set; } = null!;
 
     /// <summary>
+    /// The scanned ocr data of this image
+    /// </summary>
+    public string ImageOcrData { get; set; } = null!;
+
+    /// <summary>
     /// The element.outerHTML field of the selected element
     /// </summary>
     public string OuterHTML { get; set; } = null!;
@@ -39,10 +44,11 @@ public class DatabaseImage
     /// </summary>
     /// <param name="imageData"></param>
     /// <param name="outerHTML"></param>
-    public DatabaseImage(byte[] imageData, string outerHTML)
+    public DatabaseImage(byte[] imageData, string outerHTML, string imageOcrData)
     {
         this.ImageData = imageData;
         this.OuterHTML = outerHTML;
+        this.ImageOcrData = imageOcrData;
     }
 
     /// <summary>
