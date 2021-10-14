@@ -59,7 +59,11 @@ public class DumpController : ControllerBase
             return BadRequest("Image with that id not found");
         }
 
-        return new ImageResponse(imageUri: $"image/id/{id}", outerHTML: image.OuterHTML) {
+        return new ImageResponse(
+            imageUri: $"image/id/{id}", 
+            outerHTML: image.OuterHTML,
+            imageOcrData: image.ImageOcrData) 
+        {
             Inference = image.Inference,
             PageSource = image.PageSource
         };

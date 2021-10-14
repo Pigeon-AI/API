@@ -68,7 +68,7 @@ public class ImageController : ControllerBase
         this._logger.LogInformation($"Image processed and written to: {filePath}");
 
         // Get ocr metadata for the image
-        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(filePath);
+        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(filePath, this._logger);
 
         this._logger.LogDebug("Image ocr complete.");
 
