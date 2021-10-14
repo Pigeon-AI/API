@@ -1,6 +1,8 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Text.RegularExpressions;
+using System.Web;
 
 namespace PigeonAPI.MachineLearning;
 
@@ -106,7 +108,17 @@ public static class PreProcessing
     /// <returns></returns>
     public static async Task<string> PreprocessHTML(string html)
     {
-        await Task.Run(() => {});
+        await Task.Run(() => {
+            // simplify all special html encoded characters
+            html = HttpUtility.HtmlDecode(html)!;
+
+            // remove some unnecessary html data using regex to make it smaller
+            html = Regex.Replace(html, @"style=\s*""[^""]+""", "");
+            html = Regex.Replace(html, @"class=\s*""[^""]+""", "");
+            html = Regex.Replace(html, @"</?span[^>]*>", "");
+            html = Regex.Replace(html, @"</?br[^>]*>", "");
+            html = Regex.Replace(html, @"\s+", " ");
+        });
 
         return html;
     }

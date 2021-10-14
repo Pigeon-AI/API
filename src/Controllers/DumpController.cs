@@ -35,9 +35,9 @@ public class DumpController : ControllerBase
     {
         // ensure that the database is created/connected to properly
         using var db = new DatabaseAccess(this._logger);
-        
+
         long[] ids = await db.Images.Select(i => i.Id).ToArrayAsync();
-        
+
         return Ok(new ImageIdsResponse(ids));
     }
 
@@ -49,7 +49,7 @@ public class DumpController : ControllerBase
     public async Task<ActionResult<ImageResponse>> GetImageData(long id)
     {
         using var db = new DatabaseAccess(this._logger);
-        
+
         DatabaseImage image = await db.Images
             .Where(i => i.Id == id)
             .FirstOrDefaultAsync();
@@ -60,9 +60,9 @@ public class DumpController : ControllerBase
         }
 
         return new ImageResponse(
-            imageUri: $"image/id/{id}", 
+            imageUri: $"image/id/{id}",
             outerHTML: image.OuterHTML,
-            imageOcrData: image.ImageOcrData) 
+            imageOcrData: image.ImageOcrData)
         {
             Inference = image.Inference,
             PageSource = image.PageSource
@@ -73,11 +73,37 @@ public class DumpController : ControllerBase
     /// Get the actual image data
     /// </summary>
     /// <returns>Details for that Item</returns>
+    [HttpGet("formatted/id/{id}")]
+    public async Task<ActionResult<string>> GetFormatted(long id)
+    {
+        using var db = new DatabaseAccess(this._logger);
+
+        DatabaseImage image = await db.Images
+            .Where(i => i.Id == id)
+            .FirstOrDefaultAsync();
+
+        if (image == null)
+        {
+            return BadRequest("Image with that id not found");
+        }
+
+        string ret = 
+            $"Html:\n{image.OuterHTML}\n" +
+            $"Ocr:\n{image.ImageOcrData}\n" +
+            $"Inference:\n{image.Inference ?? ""}\n";
+
+        return Ok(ret);
+    }
+
+    /// <summary>
+    /// Get the actual image data
+    /// </summary>
+    /// <returns>Details for that Item</returns>
     [HttpGet("image/id/{id}")]
     public async Task<IActionResult> GetImage(long id)
     {
         using var db = new DatabaseAccess(this._logger);
-        
+
         byte[]? imageData = await db.Images
             .Where(i => i.Id == id)
             .Select(i => i.ImageData)

@@ -42,24 +42,6 @@ public static class ImageOCR
         public Region[]? Regions { get; set; }
     }
 
-    /// <summary>
-    /// Our desired output line format
-    /// </summary>
-    private struct ProcessedLine
-    {
-        [JsonPropertyName("centerProximity")]
-        public int CenterProximity { get; set; }
-
-        [JsonPropertyName("text")]
-        public string Text { get; set; }
-
-        public ProcessedLine(int centerProximity, string text)
-        {
-            this.Text = text;
-            this.CenterProximity = centerProximity;
-        }
-    }
-
     #endregion JsonStructs
 
     /// <summary>
@@ -116,51 +98,68 @@ public static class ImageOCR
         #pragma warning disable CS8600
         #pragma warning disable CS8603
 
-        // reformat the ocr output into a simplified form
-        ProcessedLine[] reformatted = json.Regions
-            .SelectMany(region => region.Lines)
-            .Select(line => {
-                string box = line.BoundingBox!;
+        string reformatted = await Task.Run(() => {
+            // reformat the ocr output into a simplified form
+            // this is important so we fit as much info as possible into as little space as possible
+            (double, string)[] linePairs = json.Regions
 
-                // reformat the bounding box into a better format
-                Regex r = new Regex(@"(\d+),(\d+),(\d+),(\d+)");
-                var matches = r.Match(box);
+                // we don't care about regions so just turn it into an array of lines
+                .SelectMany(region => region.Lines)
 
-                if (matches == null)
-                {
-                    throw new FormatException("Bounding box formatted incorrectly");
-                }
+                // process each line, simplifying it
+                .Select(line => {
+                    string box = line.BoundingBox!;
 
-                // parse the integers from the match
-                int left = Int32.Parse(matches.Groups[1].Value);
-                int top = Int32.Parse(matches.Groups[2].Value);
-                int width = Int32.Parse(matches.Groups[3].Value);
-                int height = Int32.Parse(matches.Groups[4].Value);
+                    // reformat the bounding box into a better format
+                    Regex r = new Regex(@"(\d+),(\d+),(\d+),(\d+)");
+                    var matches = r.Match(box);
 
-                // get the center coordinate of this text
-                double textCenterX = left + (double)width / 2;
-                double textCenterY = top + (double)height / 2;
+                    if (matches == null)
+                    {
+                        throw new FormatException("Bounding box formatted incorrectly");
+                    }
 
-                // calculate the distance from the center point
-                double distance = Math.Sqrt(
-                    (textCenterX - elementCenter.X) * (textCenterX - elementCenter.X) +
-                    (textCenterY - elementCenter.Y) * (textCenterY - elementCenter.Y));
+                    // parse the integers from the match
+                    int left = Int32.Parse(matches.Groups[1].Value);
+                    int top = Int32.Parse(matches.Groups[2].Value);
+                    int width = Int32.Parse(matches.Groups[3].Value);
+                    int height = Int32.Parse(matches.Groups[4].Value);
 
-                string lineText = line.Words
-                    .Select(word => word.Text)
-                    .Aggregate((s1, s2) => $"{s1} {s2}");
+                    // get the center coordinate of this text
+                    double textCenterX = left + (double)width / 2;
+                    double textCenterY = top + (double)height / 2;
 
-                return new ProcessedLine((int)distance, lineText);
-            })
-            .ToArray();
+                    // calculate the distance from the center point
+                    double distance = Math.Sqrt(
+                        (textCenterX - elementCenter.X) * (textCenterX - elementCenter.X) +
+                        (textCenterY - elementCenter.Y) * (textCenterY - elementCenter.Y));
+
+                    // combine all the words in this line into one line
+                    string lineText = line.Words
+                        .Select(word => word.Text)
+                        .Aggregate((s1, s2) => $"{s1} {s2}");
+
+                    return (distance, lineText!);
+                })
+                .ToArray();;
+
+            // Sort it in descending order of proximity
+            Array.Sort(linePairs, (lhs, rhs) => lhs.Item1.CompareTo(rhs.Item1));
+
+            // return the aggregated text lines in descending order of proximity
+            return linePairs
+
+                // get only the text
+                .Select(line => line.Item2)
+
+                // aggregate on newlines
+                .Aggregate((s1, s2) => $"{s1}#{s2}");
+        });
         
         #pragma warning restore CS8604
         #pragma warning restore CS8600
         #pragma warning restore CS8603
 
-        // Serialize this back into JSON for api usage
-        string result = JsonSerializer.Serialize(reformatted);
-
-        return result;
+        return reformatted;
     }
 };

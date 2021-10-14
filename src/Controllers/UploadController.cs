@@ -8,24 +8,24 @@ namespace PigeonAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ImageController : ControllerBase
+public class UploadController : ControllerBase
 {
     /// <summary>
     /// ASP.Net core required: logger
     /// </summary>
-    private readonly ILogger<ImageController> _logger;
+    private readonly ILogger<UploadController> _logger;
 
     /// <summary>
     /// ASP.Net core required: constructor
     /// </summary>
     /// <param name="logger">Provided logger</param>
-    public ImageController(ILogger<ImageController> logger)
+    public UploadController(ILogger<UploadController> logger)
     {
         _logger = logger;
     }
 
     /// <summary>
-    /// Upload an image and get an inference on the image content.
+    /// Upload an image and save it for later inferences
     /// </summary>
     /// <param name="upload">The image being uploaded</param>
     /// <returns>The response from the server</returns>
