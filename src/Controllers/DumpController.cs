@@ -65,7 +65,8 @@ public class DumpController : ControllerBase
             imageOcrData: image.ImageOcrData)
         {
             Inference = image.Inference,
-            PageSource = image.PageSource
+            PageSource = image.PageSource,
+            PageSummary = image.PageSummary
         };
     }
 
@@ -88,9 +89,10 @@ public class DumpController : ControllerBase
         }
 
         string ret = 
-            $"Html:\n{image.OuterHTML}\n" +
-            $"Ocr:\n{image.ImageOcrData}\n" +
-            $"Inference:\n{image.Inference ?? ""}\n";
+            $"H:\n{image.OuterHTML}\n" +
+            $"O:\n{image.ImageOcrData}\n" +
+            $"P:\n{image.PageSummary}\n" +
+            $"I:\n{image.Inference ?? ""}\n";
 
         return Ok(ret);
     }

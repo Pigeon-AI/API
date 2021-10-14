@@ -35,6 +35,11 @@ public class DatabaseImage
     public string? PageSource { get; set; } = null;
 
     /// <summary>
+    /// The Summary of the webpage, might not exist if there are issues
+    /// </summary>
+    public string? PageSummary { get; set; } = null;
+
+    /// <summary>
     /// Any inference we made on this image
     /// </summary>
     public string? Inference { get; set; } = null;

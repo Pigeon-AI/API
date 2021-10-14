@@ -87,6 +87,7 @@ public class UploadController : ControllerBase
             {
                 Inference = null,
                 PageSource = pageSource,
+                PageSummary = null,
             };
 
             // add it to the database

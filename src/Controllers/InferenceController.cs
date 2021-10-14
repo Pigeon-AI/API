@@ -73,28 +73,6 @@ public class InferenceController : ControllerBase
 
         this._logger.LogDebug("Image ocr complete.");
 
-        // Store image and response for future training / use
-        using (var db = new DatabaseAccess(this._logger))
-        {
-            // read the image into memory to be stored persistently in the database
-            byte[] imageData = System.IO.File.ReadAllBytes(filePath);
-
-            // Create stored database item
-            var dbItem = new DatabaseImage(
-                imageData: imageData,
-                outerHTML: outerHTML,
-                imageOcrData: ocrData)
-            {
-                Inference = null,
-                PageSource = pageSource,
-            };
-
-            // add it to the database
-            await db.Images.AddAsync(dbItem);
-
-            await db.SaveChangesAsync();
-        }
-
         string response = "This is a sample response.";
 
         return Ok(response);

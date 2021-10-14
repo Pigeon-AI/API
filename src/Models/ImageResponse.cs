@@ -24,4 +24,6 @@ public class ImageResponse
     public string ImageOcrData { get; }
 
     public string? PageSource { get; init; }
+
+    public string? PageSummary { get; init; }
 }
