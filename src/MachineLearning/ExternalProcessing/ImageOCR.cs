@@ -4,6 +4,7 @@ using PigeonAPI.Exceptions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using SixLabors.ImageSharp;
 
 /// <summary>
 /// Class for MachineLearning processing functions that call an external process or API
@@ -72,7 +73,7 @@ public static class ImageOCR
     /// </summary>
     /// <param name="imagePath">The file path of the preprocessed image</param>
     /// <returns>The inference to be returned to the user</returns>
-    public static async Task<string> DoOCR(string imagePath, ILogger logger)
+    public static async Task<string> DoOCR(string imagePath, Size imageSize, ILogger logger)
     {
         const string ocrEndpointKey = "AZURE_OCR_ENDPOINT";
         const string ocrApiKeyKey = "AZURE_OCR_APIKEY";
@@ -116,8 +117,8 @@ public static class ImageOCR
         #pragma warning disable CS8603
 
         // get the image center for later
-        double imageCenterX = (double)Constants.ImageSize.Width / 2;
-        double imageCenterY = (double)Constants.ImageSize.Height / 2;
+        double imageCenterX = (double)imageSize.Width / 2;
+        double imageCenterY = (double)imageSize.Height / 2;
 
         // reformat the ocr output into a simplified form
         ProcessedLine[] reformatted = json.Regions

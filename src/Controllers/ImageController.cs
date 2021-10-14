@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Text.RegularExpressions;
 using PigeonAPI.Models;
+using SixLabors.ImageSharp;
 
 namespace PigeonAPI.Controllers;
 
@@ -46,7 +47,7 @@ public class ImageController : ControllerBase
 
         // file path of preprocessed image
         // run in sub function to preserve functional style while kicking large memory variables off the stack
-        string filePath = await new Func<Task<string>>(async () =>
+        (string filePath, Size imageSize) = await new Func<Task<(string, Size)>>(async () =>
         {
             // regex match out the actually binary data from the data uri
             var matchGroups = Regex.Match(upload.ImageUri, @"^data:((?<type>[\w\/]+))?;base64,(?<data>.+)$").Groups;
@@ -56,9 +57,9 @@ public class ImageController : ControllerBase
             // preprocess the image and save to disk
             return await MachineLearning.PreProcessing.PreprocessImage(
                 new MemoryStream(binData),
-                new SixLabors.ImageSharp.Point(x: (int)upload.ElementCenterX, y: (int)upload.ElementCenterY),
-                new SixLabors.ImageSharp.Size(width: (int)upload.ElementWidth, height: (int)upload.ElementHeight),
-                new SixLabors.ImageSharp.Size(width: (int)upload.WindowWidth, height: (int)upload.WindowHeight),
+                new Point(x: (int)upload.ElementCenterX, y: (int)upload.ElementCenterY),
+                new Size(width: (int)upload.ElementWidth, height: (int)upload.ElementHeight),
+                new Size(width: (int)upload.WindowWidth, height: (int)upload.WindowHeight),
                 logger: this._logger);
         })();
 
@@ -68,7 +69,7 @@ public class ImageController : ControllerBase
         this._logger.LogInformation($"Image processed and written to: {filePath}");
 
         // Get ocr metadata for the image
-        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(filePath, this._logger);
+        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(filePath, imageSize, this._logger);
 
         this._logger.LogDebug("Image ocr complete.");
 
