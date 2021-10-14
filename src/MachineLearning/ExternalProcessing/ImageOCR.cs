@@ -149,10 +149,13 @@ public static class ImageOCR
             // return the aggregated text lines in descending order of proximity
             return linePairs
 
+                // take only the desired number of lines at most
+                .Take(Constants.MaxLinesOcr)
+
                 // get only the text
                 .Select(line => line.Item2)
 
-                // aggregate on newlines
+                // aggregate on the hash character
                 .Aggregate((s1, s2) => $"{s1}#{s2}");
         });
         

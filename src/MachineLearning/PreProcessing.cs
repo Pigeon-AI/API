@@ -109,15 +109,18 @@ public static class PreProcessing
     public static async Task<string> PreprocessHTML(string html)
     {
         await Task.Run(() => {
-            // simplify all special html encoded characters
-            html = HttpUtility.HtmlDecode(html)!;
-
-            // remove some unnecessary html data using regex to make it smaller
-            html = Regex.Replace(html, @"style=\s*""[^""]+""", "");
-            html = Regex.Replace(html, @"class=\s*""[^""]+""", "");
+            // remove all unecessary tags
             html = Regex.Replace(html, @"</?span[^>]*>", "");
             html = Regex.Replace(html, @"</?br[^>]*>", "");
+
+            // remove all information but the tag itself
+            html = Regex.Replace(html, @"<(/?\w+)[^>]*>", "<$1>");
+
+            // shorten all whitespace to one space
             html = Regex.Replace(html, @"\s+", " ");
+
+            // only take a certain number of characters between each tag
+            html = Regex.Replace(html, $">([^<]{{0,{Constants.MaxCharactersBetweenTags}}})[^<]*<", ">$1<");
         });
 
         return html;
