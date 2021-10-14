@@ -47,7 +47,7 @@ public class ImageController : ControllerBase
 
         // file path of preprocessed image
         // run in sub function to preserve functional style while kicking large memory variables off the stack
-        (string filePath, Size imageSize) = await new Func<Task<(string, Size)>>(async () =>
+        (string filePath, Point elementCenter) = await new Func<Task<(string, Point)>>(async () =>
         {
             // regex match out the actually binary data from the data uri
             var matchGroups = Regex.Match(upload.ImageUri, @"^data:((?<type>[\w\/]+))?;base64,(?<data>.+)$").Groups;
@@ -69,7 +69,7 @@ public class ImageController : ControllerBase
         this._logger.LogInformation($"Image processed and written to: {filePath}");
 
         // Get ocr metadata for the image
-        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(filePath, imageSize, this._logger);
+        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(filePath, elementCenter, this._logger);
 
         this._logger.LogDebug("Image ocr complete.");
 

@@ -73,7 +73,7 @@ public static class ImageOCR
     /// </summary>
     /// <param name="imagePath">The file path of the preprocessed image</param>
     /// <returns>The inference to be returned to the user</returns>
-    public static async Task<string> DoOCR(string imagePath, Size imageSize, ILogger logger)
+    public static async Task<string> DoOCR(string imagePath, Point elementCenter, ILogger logger)
     {
         const string ocrEndpointKey = "AZURE_OCR_ENDPOINT";
         const string ocrApiKeyKey = "AZURE_OCR_APIKEY";
@@ -116,10 +116,6 @@ public static class ImageOCR
         #pragma warning disable CS8600
         #pragma warning disable CS8603
 
-        // get the image center for later
-        double imageCenterX = (double)imageSize.Width / 2;
-        double imageCenterY = (double)imageSize.Height / 2;
-
         // reformat the ocr output into a simplified form
         ProcessedLine[] reformatted = json.Regions
             .SelectMany(region => region.Lines)
@@ -147,8 +143,8 @@ public static class ImageOCR
 
                 // calculate the distance from the center point
                 double distance = Math.Sqrt(
-                    (textCenterX - imageCenterX) * (textCenterX - imageCenterX) +
-                    (textCenterY - imageCenterY) * (textCenterY - imageCenterY));
+                    (textCenterX - elementCenter.X) * (textCenterX - elementCenter.X) +
+                    (textCenterY - elementCenter.Y) * (textCenterY - elementCenter.Y));
 
                 string lineText = line.Words
                     .Select(word => word.Text)

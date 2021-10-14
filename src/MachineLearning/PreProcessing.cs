@@ -29,8 +29,8 @@ public static class PreProcessing
     /// </summary>
     /// <param name="imageStream">A stream with the image data</param>
     /// <param name="center">The point we want as center in the new image</param>
-    /// <returns>The file path and the new size of the image</returns>
-    public static async Task<(string, Size)> PreprocessImage(
+    /// <returns>The file path and the new adjusted center of the element</returns>
+    public static async Task<(string, Point)> PreprocessImage(
         Stream imageStream,
         Point center,
         Size elementSize,
@@ -71,9 +71,11 @@ public static class PreProcessing
         int left = center.X - newSize.Width / 2;
         int top = center.Y - newSize.Height / 2;
 
+        // don't let left or top go below 0
         left = Math.Max(left, 0);
         top = Math.Max(top, 0);
 
+        // don't let the width or height over stretch it
         int width = newSize.Width - Math.Max(newSize.Width + left - originalSize.Width, 0);
         int height = newSize.Height - Math.Max(newSize.Height + top - originalSize.Height, 0);
 
@@ -89,7 +91,12 @@ public static class PreProcessing
         });
         await image.SaveAsJpegAsync(outStream);
 
-        return (filePath, newSize);
+        Point adjustedCenter = new Point(
+            x: center.X - left,
+            y: center.Y - top
+        );
+
+        return (filePath, adjustedCenter);
     }
 
     /// <summary>
