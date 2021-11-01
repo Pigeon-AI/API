@@ -14,13 +14,10 @@
             "cwd": "${workspaceFolder}/src",
             "stopAtEntry": false,
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "AZURE_OCR_APIKEY": "SECRET, check heroku",
+                "AZURE_OCR_ENDPOINT": "SECRET, check heroku",
             },
-        },
-        {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach"
         }
     ]
 }
