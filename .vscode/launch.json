@@ -17,6 +17,7 @@
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "AZURE_OCR_APIKEY": "SECRET, check heroku",
                 "AZURE_OCR_ENDPOINT": "SECRET, check heroku",
+                "OPENAI_KEY": "SECRET, check heroku",
             },
         }
     ]
