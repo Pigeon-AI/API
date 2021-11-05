@@ -117,7 +117,13 @@ public static class PreProcessing
             html = Regex.Replace(html, @"</?br[^>]*>", "");
 
             // remove all information but the tag itself
-            html = Regex.Replace(html, @"<(/?\w+)[^>]*>", "<$1>");
+            html = Regex.Replace(html, @"<\s*(/?\w+)[^>]*>", "<$1>");
+
+            // remove all javascript tags
+            html = Regex.Replace(html, @"<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>", "");
+
+            // remove all css tags
+            html = Regex.Replace(html, @"<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>", "");
 
             // shorten all whitespace to one space
             html = Regex.Replace(html, @"\s+", " ");

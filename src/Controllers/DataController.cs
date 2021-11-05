@@ -75,7 +75,7 @@ public class DataController : ControllerBase
     /// </summary>
     /// <returns>Details for that Item</returns>
     [HttpPatch("id/{id}")]
-    public async Task<ActionResult<ImageResponse>> EditImageData(long id)
+    public async Task<IActionResult> EditImageData(long id, ImagePatch patch)
     {
         using var db = new DatabaseAccess(this._logger);
 
@@ -88,15 +88,11 @@ public class DataController : ControllerBase
             return BadRequest("Image with that id not found");
         }
 
-        return new ImageResponse(
-            imageUri: $"image/id/{id}",
-            outerHTML: image.OuterHTML,
-            imageOcrData: image.ImageOcrData)
-        {
-            Inference = image.Inference,
-            PageSource = image.PageSource,
-            PageSummary = image.PageSummary
-        };
+        image.Inference = patch.Inference;
+
+        await db.SaveChangesAsync();
+
+        return Ok();
     }
 
     /// <summary>
@@ -117,11 +113,7 @@ public class DataController : ControllerBase
             return BadRequest("Image with that id not found");
         }
 
-        string ret = 
-            $"H:\n{image.OuterHTML}\n" +
-            $"O:\n{image.ImageOcrData}\n" +
-            $"P:\n{image.PageSummary}\n" +
-            $"I:\n{image.Inference ?? ""}\n";
+        string ret = ((Models.IPromptData)image).GetAsString();
 
         return Ok(ret);
     }

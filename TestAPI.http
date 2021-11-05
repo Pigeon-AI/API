@@ -1,13 +1,24 @@
-@url = https://pigeon-ai-api.herokuapp.com
+@url = https://localhost:7210
 
 ### Test the service is running
 GET {{url}} HTTP/1.1
 
 ### Get a list of all images in the database
-GET {{url}}/dump/ HTTP/1.1
+GET {{url}}/data/ HTTP/1.1
 
 ### Get a specific image's data
-GET {{url}}/dump/id/1 HTTP/1.1
+GET {{url}}/data/id/1 HTTP/1.1
+
+### Set the inference text for a specific image
+PATCH {{url}}/data/id/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "inference": "test inference\n"
+}
 
 ### Get a specific image
-GET {{url}}/dump/image/id/1 HTTP/1.1
+GET {{url}}/data/image/id/1 HTTP/1.1
+
+### Get the gpt formatted data
+GET {{url}}/data/formatted/id/2 HTTP/1.1
