@@ -47,12 +47,9 @@ public class UploadController : ControllerBase
 
         // file path of preprocessed image
         // run in sub function to preserve functional style while kicking large memory variables off the stack
-        (string filePath, Point elementCenter) = await new Func<Task<(string, Point)>>(async () =>
+        (MemoryStream fileStream, Point elementCenter) = await new Func<Task<(MemoryStream, Point)>>(async () =>
         {
-            // regex match out the actually binary data from the data uri
-            var matchGroups = Regex.Match(upload.ImageUri, @"^data:((?<type>[\w\/]+))?;base64,(?<data>.+)$").Groups;
-            var base64Data = matchGroups["data"].Value;
-            var binData = Convert.FromBase64String(base64Data);
+            var binData = await MachineLearning.PreProcessing.ConvertBase64ToFile(upload.ImageUri);
 
             // preprocess the image and save to disk
             return await MachineLearning.PreProcessing.PreprocessImage(
@@ -66,22 +63,19 @@ public class UploadController : ControllerBase
         string outerHTML = await MachineLearning.PreProcessing.PreprocessHTML(upload.OuterHTML);
         string? pageSource = upload.PageSource == null ? null : await MachineLearning.PreProcessing.PreprocessHTML(upload.PageSource);
 
-        this._logger.LogInformation($"Image processed and written to: {filePath}");
+        this._logger.LogDebug($"Image processed and written to memory.");
 
         // Get ocr metadata for the image
-        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(filePath, elementCenter, this._logger);
+        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(fileStream, elementCenter, this._logger);
 
         this._logger.LogDebug("Image ocr complete.");
 
         // Store image and response for future training / use
         using (var db = new DatabaseAccess(this._logger))
         {
-            // read the image into memory to be stored persistently in the database
-            byte[] imageData = System.IO.File.ReadAllBytes(filePath);
-
             // Create stored database item
             var dbItem = new DatabaseImage(
-                imageData: imageData,
+                imageData: fileStream.ToArray(),
                 outerHTML: outerHTML,
                 imageOcrData: ocrData)
             {
@@ -96,7 +90,7 @@ public class UploadController : ControllerBase
             await db.SaveChangesAsync();
         }
 
-        string response = "This is a sample response.";
+        string response = "This sample was saved to the database.";
 
         return Ok(response);
     }

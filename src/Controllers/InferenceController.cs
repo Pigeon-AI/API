@@ -25,6 +25,12 @@ public class InferenceController : ControllerBase
     }
 
     /// <summary>
+    /// The seed ids to grab from the database for use for inference
+    /// </summary>
+    /// <value></value>
+    private readonly ICollection<long> seedIds = new HashSet<long>{1, 2, 3};
+
+    /// <summary>
     /// Upload an image and get an inference on the image content.
     /// </summary>
     /// <param name="upload">The image being uploaded</param>
@@ -47,12 +53,9 @@ public class InferenceController : ControllerBase
 
         // file path of preprocessed image
         // run in sub function to preserve functional style while kicking large memory variables off the stack
-        (string filePath, Point elementCenter) = await new Func<Task<(string, Point)>>(async () =>
+        (MemoryStream fileStream, Point elementCenter) = await new Func<Task<(MemoryStream, Point)>>(async () =>
         {
-            // regex match out the actually binary data from the data uri
-            var matchGroups = Regex.Match(upload.ImageUri, @"^data:((?<type>[\w\/]+))?;base64,(?<data>.+)$").Groups;
-            var base64Data = matchGroups["data"].Value;
-            var binData = Convert.FromBase64String(base64Data);
+            var binData = await MachineLearning.PreProcessing.ConvertBase64ToFile(upload.ImageUri);
 
             // preprocess the image and save to disk
             return await MachineLearning.PreProcessing.PreprocessImage(
@@ -66,14 +69,20 @@ public class InferenceController : ControllerBase
         string outerHTML = await MachineLearning.PreProcessing.PreprocessHTML(upload.OuterHTML);
         string? pageSource = upload.PageSource == null ? null : await MachineLearning.PreProcessing.PreprocessHTML(upload.PageSource);
 
-        this._logger.LogInformation($"Image processed and written to: {filePath}");
-
         // Get ocr metadata for the image
-        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(filePath, elementCenter, this._logger);
+        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(fileStream, elementCenter, this._logger);
 
         this._logger.LogDebug("Image ocr complete.");
 
-        string response = "This is a sample response.";
+        using var db = new DatabaseAccess(this._logger);
+
+        var prompt = new GPT3Prompt
+        {
+            SeedPrompts = db.Images.Where(item => seedIds.Contains(item.Id)).ToList(),
+            NewPrompt = new PromptData(outerHTML: outerHTML, imageOcrData: ocrData)
+        };
+
+        string response = await MachineLearning.ExternalProcessing.GPT3Inferencing.MakeInference(prompt);
 
         return Ok(response);
     }

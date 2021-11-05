@@ -6,7 +6,7 @@ namespace PigeonAPI.Models;
 /// <summary>
 /// An individual instance of an item in inventory
 /// </summary>
-public class DatabaseImage
+public class DatabaseImage : IPromptData
 {
     /// <summary>
     /// The unique identifier for this item

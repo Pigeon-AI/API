@@ -45,6 +45,30 @@ public static class ImageOCR
     #endregion JsonStructs
 
     /// <summary>
+    /// Constant with the environment variable key used to get the endpoint secret
+    /// </summary>
+    const string ocrEndpointKey = "AZURE_OCR_ENDPOINT";
+
+    /// <summary>
+    /// Constant with the environment variable key needed to access the api
+    /// </summary>
+    const string ocrApiKeyKey = "AZURE_OCR_APIKEY";
+
+    /// <summary>
+    /// The secret endpoint of the OCR API
+    /// </summary>
+    /// <returns></returns>
+    private static readonly Lazy<string> ocrEndpoint = new (() => Environment.GetEnvironmentVariable(ocrEndpointKey) ??
+            throw new EnvironmentVariableException(ocrEndpointKey));
+
+    /// <summary>
+    /// The secret private key of the OCR API
+    /// </summary>
+    /// <returns></returns>
+    private static readonly Lazy<string> ocrApiKey = new (() => Environment.GetEnvironmentVariable(ocrApiKeyKey) ??
+            throw new EnvironmentVariableException(ocrApiKeyKey));
+
+    /// <summary>
     /// HttpClient for this class
     /// </summary>
     /// <returns></returns>
@@ -55,29 +79,20 @@ public static class ImageOCR
     /// </summary>
     /// <param name="imagePath">The file path of the preprocessed image</param>
     /// <returns>The inference to be returned to the user</returns>
-    public static async Task<string> DoOCR(string imagePath, Point elementCenter, ILogger logger)
+    public static async Task<string> DoOCR(Stream imageStream, Point elementCenter, ILogger logger)
     {
-        const string ocrEndpointKey = "AZURE_OCR_ENDPOINT";
-        const string ocrApiKeyKey = "AZURE_OCR_APIKEY";
-
-        // first read in the environment variables with the endpoint info
-        string ocrEndpoint = Environment.GetEnvironmentVariable(ocrEndpointKey) ??
-            throw new EnvironmentVariableException(ocrEndpointKey);
-        string ocrApiKey = Environment.GetEnvironmentVariable(ocrApiKeyKey) ??
-            throw new EnvironmentVariableException(ocrApiKeyKey);
 
         // create response
-        var request = new HttpRequestMessage(HttpMethod.Post, ocrEndpoint);
+        var request = new HttpRequestMessage(HttpMethod.Post, ocrEndpoint.Value);
 
         // Add the image as http content
-        var imageStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read);
         request.Content = new StreamContent(imageStream);
 
         // tell it it's a jpeg being uploaded
         request.Content.Headers.Add("Content-Type", "image/jpeg");
 
         // Add the authorization key
-        request.Headers.Add("Ocp-Apim-Subscription-Key", ocrApiKey);
+        request.Headers.Add("Ocp-Apim-Subscription-Key", ocrApiKey.Value);
 
         // send the actual request
         var response = await client.SendAsync(request);

@@ -10,18 +10,18 @@ namespace PigeonAPI.Controllers;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-public class DumpController : ControllerBase
+public class DataController : ControllerBase
 {
     /// <summary>
     /// Internal logger provided by ASP.Net
     /// </summary>
-    private readonly ILogger<DumpController> _logger;
+    private readonly ILogger<DataController> _logger;
 
     /// <summary>
     /// Default constructor
     /// </summary>
     /// <param name="logger">Logger provided by ASP.Net</param>
-    public DumpController(ILogger<DumpController> logger)
+    public DataController(ILogger<DataController> logger)
     {
         _logger = logger;
     }
@@ -47,6 +47,35 @@ public class DumpController : ControllerBase
     /// <returns>Details for that Item</returns>
     [HttpGet("id/{id}")]
     public async Task<ActionResult<ImageResponse>> GetImageData(long id)
+    {
+        using var db = new DatabaseAccess(this._logger);
+
+        DatabaseImage image = await db.Images
+            .Where(i => i.Id == id)
+            .FirstOrDefaultAsync();
+
+        if (image == null)
+        {
+            return BadRequest("Image with that id not found");
+        }
+
+        return new ImageResponse(
+            imageUri: $"image/id/{id}",
+            outerHTML: image.OuterHTML,
+            imageOcrData: image.ImageOcrData)
+        {
+            Inference = image.Inference,
+            PageSource = image.PageSource,
+            PageSummary = image.PageSummary
+        };
+    }
+
+    /// <summary>
+    /// Set the inference for this image
+    /// </summary>
+    /// <returns>Details for that Item</returns>
+    [HttpPatch("id/{id}")]
+    public async Task<ActionResult<ImageResponse>> EditImageData(long id)
     {
         using var db = new DatabaseAccess(this._logger);
 

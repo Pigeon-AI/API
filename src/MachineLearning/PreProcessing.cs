@@ -31,9 +31,9 @@ public static class PreProcessing
     /// </summary>
     /// <param name="imageStream">A stream with the image data</param>
     /// <param name="center">The point we want as center in the new image</param>
-    /// <returns>The file path and the new adjusted center of the element</returns>
-    public static async Task<(string, Point)> PreprocessImage(
-        Stream imageStream,
+    /// <returns>The file as a stream and the new adjusted center of the element</returns>
+    public static async Task<(MemoryStream, Point)> PreprocessImage(
+        MemoryStream imageStream,
         Point center,
         Size elementSize,
         Size windowSize,
@@ -41,7 +41,7 @@ public static class PreProcessing
     {
         string filePath = Path.Combine(tempFileDirectory.Value, $"{Guid.NewGuid().ToString()}.jpg");
 
-        await using var outStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
+        var outStream = new MemoryStream();
         using var image = await Image.LoadAsync(imageStream);
 
         Size originalSize = image.Size();
@@ -98,7 +98,10 @@ public static class PreProcessing
             y: center.Y - top
         );
 
-        return (filePath, adjustedCenter);
+        // reset position to beginning
+        outStream.Position = 0;
+
+        return (outStream, adjustedCenter);
     }
 
     /// <summary>
@@ -124,5 +127,22 @@ public static class PreProcessing
         });
 
         return html;
+    }
+
+    /// <summary>
+    /// Function to convert the base64 uri representation of an image ot the actual file
+    /// </summary>
+    /// <param name="base64Image"></param>
+    /// <returns></returns>
+    public static async Task<byte[]> ConvertBase64ToFile(string base64Image)
+    {
+        return await Task.Run(() => {
+            // regex match out the actually binary data from the data uri
+            var matchGroups = Regex.Match(base64Image, @"^data:((?<type>[\w\/]+))?;base64,(?<data>.+)$").Groups;
+            var base64Data = matchGroups["data"].Value;
+            var binData = Convert.FromBase64String(base64Data);
+
+            return binData ?? throw new Exception("Unexpected error parsing image uri");
+        });
     }
 }
