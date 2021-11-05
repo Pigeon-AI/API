@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PigeonAPI;
 using PigeonAPI.Models;
+using System.Text.Json;
+using System.Text;
 
 namespace PigeonAPI.Controllers;
 
@@ -75,7 +77,7 @@ public class DataController : ControllerBase
     /// </summary>
     /// <returns>Details for that Item</returns>
     [HttpPatch("id/{id}")]
-    public async Task<IActionResult> EditImageData(long id, ImagePatch patch)
+    public async Task<IActionResult> EditImageData(long id, [FromBody] JsonDocument doc)
     {
         using var db = new DatabaseAccess(this._logger);
 
@@ -88,7 +90,18 @@ public class DataController : ControllerBase
             return BadRequest("Image with that id not found");
         }
 
-        image.Inference = patch.Inference;
+        // use reflection to update a property if named properly
+        foreach(var property in doc.RootElement.EnumerateObject())
+        {
+            // capitalize the first letter to PascalCase
+            var builder = new StringBuilder(property.Name);
+            builder[0] = char.ToUpper(builder[0]);
+            string capitalized = builder.ToString();
+
+            string? val = property.Value.GetString();
+
+            image.GetType().GetProperty(capitalized)?.SetValue(image, val);
+        }
 
         await db.SaveChangesAsync();
 
