@@ -55,18 +55,18 @@ public static class ImageOCR
     const string ocrApiKeyKey = "AZURE_OCR_APIKEY";
 
     /// <summary>
-    /// The secret endpoint of the OCR API
+    /// The secret endpoint and key of the OCR API
     /// </summary>
     /// <returns></returns>
-    private static readonly Lazy<string> ocrEndpoint = new (() => Environment.GetEnvironmentVariable(ocrEndpointKey) ??
-            throw new EnvironmentVariableException(ocrEndpointKey));
+    private static readonly Task<(string, string)> ocrData = Task.Run(() => {
+        string ocrEndpoint = Environment.GetEnvironmentVariable(ocrEndpointKey) ??
+            throw new EnvironmentVariableException(ocrEndpointKey);
 
-    /// <summary>
-    /// The secret private key of the OCR API
-    /// </summary>
-    /// <returns></returns>
-    private static readonly Lazy<string> ocrApiKey = new (() => Environment.GetEnvironmentVariable(ocrApiKeyKey) ??
-            throw new EnvironmentVariableException(ocrApiKeyKey));
+        string ocrKey = Environment.GetEnvironmentVariable(ocrApiKeyKey) ??
+            throw new EnvironmentVariableException(ocrApiKeyKey);
+
+        return (ocrEndpoint, ocrKey);
+    });
 
     /// <summary>
     /// HttpClient for this class
@@ -81,9 +81,10 @@ public static class ImageOCR
     /// <returns>The inference to be returned to the user</returns>
     public static async Task<string> DoOCR(Stream imageStream, Point elementCenter, ILogger logger)
     {
+        (string endpoint, string key) = await ocrData;
 
         // create response
-        var request = new HttpRequestMessage(HttpMethod.Post, ocrEndpoint.Value);
+        var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
 
         // Add the image as http content
         request.Content = new StreamContent(imageStream);
@@ -92,7 +93,7 @@ public static class ImageOCR
         request.Content.Headers.Add("Content-Type", "image/jpeg");
 
         // Add the authorization key
-        request.Headers.Add("Ocp-Apim-Subscription-Key", ocrApiKey.Value);
+        request.Headers.Add("Ocp-Apim-Subscription-Key", key);
 
         // send the actual request
         var response = await client.SendAsync(request);

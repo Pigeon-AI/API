@@ -14,13 +14,13 @@ public static class GPT3Inferencing
     /// </summary>
     const string openAiApiKey = "OPENAI_KEY";
 
-    private static readonly Task<OpenAIAPI> api = new (() => {
+    private static readonly Task<OpenAIAPI> api = Task.Run(() => {
         string apiKey = Environment.GetEnvironmentVariable(openAiApiKey) ??
             throw new EnvironmentVariableException(openAiApiKey);
 
         Console.WriteLine("Hit task innards");
 
-        return new OpenAIAPI(apiKey);
+        return Task.FromResult(new OpenAIAPI(apiKey));
     });
 
     public static async Task<string> MakeInference(GPT3Prompt prompt)
@@ -34,11 +34,7 @@ public static class GPT3Inferencing
             StopSequence = "\n", // stop sequence to end on
         };
 
-        Console.WriteLine("Hit make inference");
-
         CompletionResult result = await (await api).Completions.CreateCompletionAsync(request);
-
-        Console.WriteLine("Finished make inference");
 
         return result.ToString();
     }
