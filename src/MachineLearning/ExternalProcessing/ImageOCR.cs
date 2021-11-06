@@ -172,7 +172,7 @@ public static class ImageOCR
                 .Select(line => line.Item2)
 
                 // aggregate on the hash character
-                .Aggregate((s1, s2) => $"{s1}#{s2}");
+                .Aggregate("", (s1, s2) => $"{s1}#{s2}");
         });
         
         #pragma warning restore CS8604
