@@ -30,6 +30,6 @@ public interface IPromptData
     public string GetAsString()
     {
         // inference includes trailing newline if applicable
-        return $"High Priority:\n{OuterHTML}\nLow Priority:\n{ImageOcrData}\nSummary\n{Inference}";
+        return $"High Priority\n{OuterHTML}\nLow Priority\n{ImageOcrData}\nSummary\n{Inference}";
     }
 }
