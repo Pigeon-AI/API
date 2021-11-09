@@ -3,6 +3,7 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Text.RegularExpressions;
 using System.Web;
+using HtmlAgilityPack;
 
 namespace PigeonAPI.MachineLearning;
 
@@ -11,6 +12,12 @@ namespace PigeonAPI.MachineLearning;
 /// </summary>
 public static class PreProcessing
 {
+    /// <summary>
+    /// Precompiled regex expression for speed
+    /// </summary>
+    /// <returns></returns>
+    private static readonly Regex whiteSpace = new (@"\s+", RegexOptions.Compiled);
+
     /// <summary>
     /// Randomly generate a temp directory to store images in
     /// </summary>
@@ -105,34 +112,116 @@ public static class PreProcessing
     }
 
     /// <summary>
-    /// Apply any necessary preprocessing to the html if necessary
+    /// Gets rid of any extraneous tags and formatting from the html passed in
     /// </summary>
+    /// <remarks>
+    /// Intended for the element.OuterHTML parsing
+    /// </remarks>
     /// <param name="html"></param>
     /// <returns></returns>
-    public static async Task<string> PreprocessHTML(string html)
+    public static async Task<string> StripHTML(string html)
     {
-        await Task.Run(() => {
-            // remove all unecessary tags
-            html = Regex.Replace(html, @"</?span[^>]*>", "");
-            html = Regex.Replace(html, @"</?br[^>]*>", "");
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
 
-            // remove all information but the tag itself
-            html = Regex.Replace(html, @"<\s*(/?\w+)[^>]*>", "<$1>");
+        void RecurseParse(HtmlNode node)
+        {
+            switch (node.NodeType)
+            {
+                case HtmlNodeType.Element:
 
-            // remove all javascript tags
-            html = Regex.Replace(html, @"<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>", "");
+                    // do different actions depending on element type
+                    switch (node.Name)
+                    {
+                        // bad elements we just ignore
+                        case "script":
+                        case "style":
+                        case "meta":
+                            node.Remove();
+                            break;
+                        
+                        // good elements we parse and recurse on
+                        default:
+                            // remove all attributes to elements
+                            node.Attributes.RemoveAll();
 
-            // remove all css tags
-            html = Regex.Replace(html, @"<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>", "");
+                            // recursively call this on all children
+                            foreach (var child in node.ChildNodes.ToArray())
+                            {
+                                RecurseParse(child);
+                            }
 
-            // shorten all whitespace to one space
-            html = Regex.Replace(html, @"\s+", " ");
+                            // remove this node if empty
+                            if (node.ChildNodes.Count == 0)
+                            {
+                                node.Remove();
+                            }
+                            break;
 
-            // only take a certain number of characters between each tag
-            html = Regex.Replace(html, $">([^<]{{0,{Constants.MaxCharactersBetweenTags}}})[^<]*<", ">$1<");
-        });
+                    }
+                    break;
+                
+                case HtmlNodeType.Comment:
 
-        return html;
+                    // remove all comments
+                    node.Remove();
+                    break;
+
+                case HtmlNodeType.Document:
+
+                    // just recurse for documents
+                    foreach (var child in node.ChildNodes.ToArray())
+                    {
+                        RecurseParse(child);
+                    }
+                    break;
+
+                case HtmlNodeType.Text:
+
+                    HtmlTextNode textNode = node as HtmlTextNode ?? throw new Exception("Unknown error converting.");
+
+                    // trim first
+                    string text = textNode.Text.Trim();
+
+                    // make all whitespace just one space
+                    text = whiteSpace.Replace(text, " ");
+
+                    const int maxCount = 200;
+
+                    // shorten if it's too long
+                    if (text.Length > maxCount)
+                    {
+                        text = text.Substring(0, maxCount);
+                    }
+
+                    // set it back equal
+                    textNode.Text = text;
+                
+                    // remove if white space
+                    if (text.Length == 0)
+                    {
+                        node.Remove();
+                    }
+                    break;
+
+            }
+        }
+
+        RecurseParse(doc.DocumentNode);
+
+        // create memory stream to write to
+        await using MemoryStream ms = new ();
+
+        // write document to memory stream
+        doc.Save(ms);
+
+        // reset position
+        ms.Position = 0;
+
+        // read as string
+        using var sr = new StreamReader(ms);
+
+        return await sr.ReadToEndAsync();
     }
 
     /// <summary>

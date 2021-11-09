@@ -60,7 +60,7 @@ public class UploadController : ControllerBase
                 logger: this._logger);
         })();
 
-        string outerHTML = await MachineLearning.PreProcessing.PreprocessHTML(upload.OuterHTML);
+        string outerHTML = upload.OuterHTML;
         string? pageSource = upload.PageSource == null ? null : await MachineLearning.PreProcessing.PreprocessHTML(upload.PageSource);
 
         this._logger.LogDebug($"Image processed and written to memory.");
