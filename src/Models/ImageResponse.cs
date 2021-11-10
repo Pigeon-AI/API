@@ -8,11 +8,12 @@ public class ImageResponse
     /// <summary>
     /// Private constructor needed by entity framework reflection
     /// </summary>
-    public ImageResponse(string imageUri, string outerHTML, string imageOcrData)
+    public ImageResponse(string imageUri, string outerHTML, string imageOcrData, string pageText)
     {
         this.ImageUri = imageUri;
         this.OuterHTML = outerHTML;
         this.ImageOcrData = imageOcrData;
+        this.PageText = pageText;
     }
 
     public string ImageUri { get; }
@@ -23,7 +24,9 @@ public class ImageResponse
 
     public string ImageOcrData { get; }
 
-    public string? PageSource { get; init; }
+    public string? PageTitle { get; init; }
+
+    public string PageText { get; set; }
 
     public string? PageSummary { get; init; }
 }

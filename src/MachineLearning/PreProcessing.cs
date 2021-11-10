@@ -225,6 +225,88 @@ public static class PreProcessing
     }
 
     /// <summary>
+    /// Extracts the actual text data and title from the html
+    /// </summary>
+    /// <remarks>
+    /// Intended for the page source parsing
+    /// </remarks>
+    /// <param name="html"></param>
+    /// <returns>(title, data)</returns>
+    public static async Task<(string?, string)> ExtractTextFromHtml(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+
+        // create memory stream to write to
+        await using MemoryStream ms = new ();
+        await using StreamWriter sw = new (ms);
+
+        // the title of this webpage, most important
+        string? title = null;
+
+        // go through every instance of text in 
+        foreach (HtmlNode textNode in doc.DocumentNode.Descendants().Where(node => node.NodeType == HtmlNodeType.Text))
+        {
+            bool isTitle = false;
+
+            switch (textNode.ParentNode.Name)
+            {
+                // don't allow undesirable parent tags to murk up the info
+                case "script":
+                case "style":
+                case "meta":
+                case "cite":
+                    continue;
+                
+                case "title":
+                    isTitle = true;
+                    break;
+                
+                default:
+                    break;
+            }
+
+            // trim first
+            string text = textNode.InnerText.Trim();
+
+            // fix all html funk
+            text = HttpUtility.HtmlDecode(text);
+
+            // make all whitespace just one space
+            text = whiteSpace.Replace(text, " ");
+
+            // shorten if it's too long
+            if (text.Length > Constants.MaxCharactersBetweenTags)
+            {
+                text = text.Substring(0, Constants.MaxCharactersBetweenTags);
+            }
+        
+            // only write if non empty
+            if (text.Length != 0)
+            {
+                // title is special
+                if (isTitle) {
+                    title = text;
+                }
+                else
+                {
+                    sw.Write(text + " ");
+                }
+            }
+        }
+
+        await sw.FlushAsync();
+
+        // reset position
+        ms.Position = 0;
+
+        // read as string
+        using var sr = new StreamReader(ms);
+
+        return (title ?? "", await sr.ReadToEndAsync());
+    }
+
+    /// <summary>
     /// Function to convert the base64 uri representation of an image ot the actual file
     /// </summary>
     /// <param name="base64Image"></param>

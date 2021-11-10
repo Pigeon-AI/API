@@ -30,9 +30,14 @@ public class DatabaseImage : IPromptData
     public string OuterHTML { get; set; } = null!;
 
     /// <summary>
-    /// The entire page source of the webpage, might not exist if there are issues
+    /// The title of the website
     /// </summary>
-    public string? PageSource { get; set; } = null;
+    public string? PageTitle { get; set; } = null;
+
+    /// <summary>
+    /// The rest of the raw text data from this website
+    /// </summary>
+    public string PageText { get; set; } = null!;
 
     /// <summary>
     /// The Summary of the webpage, might not exist if there are issues
@@ -49,11 +54,12 @@ public class DatabaseImage : IPromptData
     /// </summary>
     /// <param name="imageData"></param>
     /// <param name="outerHTML"></param>
-    public DatabaseImage(byte[] imageData, string outerHTML, string imageOcrData)
+    public DatabaseImage(byte[] imageData, string outerHTML, string imageOcrData, string pageText)
     {
         this.ImageData = imageData;
         this.OuterHTML = outerHTML;
         this.ImageOcrData = imageOcrData;
+        this.PageText = pageText;
     }
 
     /// <summary>

@@ -34,6 +34,7 @@ public class UploadController : ControllerBase
     {
         if (String.IsNullOrEmpty(upload.ImageUri) ||
             String.IsNullOrEmpty(upload.OuterHTML) ||
+            String.IsNullOrEmpty(upload.PageSource) ||
             upload.ElementCenterX < 0 ||
             upload.ElementCenterY < 0 ||
             upload.ElementWidth < 0 ||
@@ -44,6 +45,15 @@ public class UploadController : ControllerBase
             this._logger.LogDebug("Received bad request.");
             return BadRequest("Malformed ImageUpload");
         }
+
+        string outerHTML = upload.OuterHTML;
+        (string? pageTitle, string pageText) = await MachineLearning.PreProcessing.ExtractTextFromHtml(upload.PageSource);
+
+        // send it to GPT3 to do preliminary summarization
+        Task<string> summary = MachineLearning.ExternalProcessing.GPT3Inferencing.SummarizePage(
+            pageTitle: pageTitle,
+            pageText: pageText
+        );
 
         // file path of preprocessed image
         // run in sub function to preserve functional style while kicking large memory variables off the stack
@@ -60,13 +70,10 @@ public class UploadController : ControllerBase
                 logger: this._logger);
         })();
 
-        string outerHTML = upload.OuterHTML;
-        string? pageSource = upload.PageSource == null ? null : await MachineLearning.PreProcessing.PreprocessHTML(upload.PageSource);
-
         this._logger.LogDebug($"Image processed and written to memory.");
 
         // Get ocr metadata for the image
-        string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(fileStream, elementCenter, this._logger);
+        Task<string> ocrData = MachineLearning.ExternalProcessing.ImageOCR.DoOCR(fileStream, elementCenter, this._logger);
 
         this._logger.LogDebug("Image ocr complete.");
 
@@ -77,11 +84,12 @@ public class UploadController : ControllerBase
             var dbItem = new DatabaseImage(
                 imageData: fileStream.ToArray(),
                 outerHTML: outerHTML,
-                imageOcrData: ocrData)
+                imageOcrData: await ocrData,
+                pageText: pageText)
             {
                 Inference = null,
-                PageSource = pageSource,
-                PageSummary = null,
+                PageTitle = pageTitle,
+                PageSummary = await summary,
             };
 
             // add it to the database

@@ -5,7 +5,7 @@ namespace PigeonAPI.Models;
 /// <summary>
 /// A class representing a prompt to be sent to the GPT3 api, handles all formatting
 /// </summary>
-public class GPT3Prompt
+public class GPT3InferencePrompt
 {
     const string Foreword = "Summarize meaning from HTML and OCR data.";
 

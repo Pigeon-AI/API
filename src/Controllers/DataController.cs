@@ -64,10 +64,11 @@ public class DataController : ControllerBase
         return new ImageResponse(
             imageUri: $"image/id/{id}",
             outerHTML: image.OuterHTML,
-            imageOcrData: image.ImageOcrData)
+            imageOcrData: image.ImageOcrData,
+            pageText: image.PageText)
         {
             Inference = image.Inference,
-            PageSource = image.PageSource,
+            PageTitle = image.PageTitle,
             PageSummary = image.PageSummary
         };
     }

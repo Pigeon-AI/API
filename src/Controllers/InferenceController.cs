@@ -66,8 +66,8 @@ public class InferenceController : ControllerBase
                 logger: this._logger);
         })();
 
-        string outerHTML = await MachineLearning.PreProcessing.PreprocessHTML(upload.OuterHTML);
-        string? pageSource = upload.PageSource == null ? null : await MachineLearning.PreProcessing.PreprocessHTML(upload.PageSource);
+        string outerHTML = await MachineLearning.PreProcessing.StripHTML(upload.OuterHTML);
+        //string? pageSource = upload.PageSource == null ? null : await MachineLearning.PreProcessing.PreprocessHTML(upload.PageSource);
 
         // Get ocr metadata for the image
         string ocrData = await MachineLearning.ExternalProcessing.ImageOCR.DoOCR(fileStream, elementCenter, this._logger);
@@ -76,7 +76,7 @@ public class InferenceController : ControllerBase
 
         using var db = new DatabaseAccess(this._logger);
 
-        var prompt = new GPT3Prompt
+        var prompt = new GPT3InferencePrompt
         {
             SeedPrompts = db.Images.Where(item => seedIds.Contains(item.Id)).ToList(),
             NewPrompt = new PromptData(outerHTML: outerHTML, imageOcrData: ocrData)
