@@ -128,21 +128,4 @@ public static class GPT3Inferencing
         
         return await callGptApi(davinciInstructEndpoint, prompt.ToString(), "\"\"\"");
     }
-
-    /// <summary>
-    /// Summarize a page given the pageTitle and pageText
-    /// </summary>
-    /// <param name="pageTitle"></param>
-    /// <param name="pageText"></param>
-    /// <returns></returns>
-    public static async Task<string> SummarizeNytCnn(string? seed, string data)
-    {
-        StringBuilder prompt = new(seed);
-
-        prompt.Append($"Data:\n{data}\n");
-
-        prompt.Append("Summary:\n");
-        
-        return await callGptApi(davinciEndpoint, prompt.ToString(), "\"\"\"");
-    }
 }
