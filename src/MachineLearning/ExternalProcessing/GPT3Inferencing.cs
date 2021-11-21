@@ -48,10 +48,10 @@ public static class GPT3Inferencing
     /// <param name="stopSequences">The array of stop sequences</param>
     /// <param name="max_tokens">The max number of tokens in the response</param>
     /// <param name="temperature">The randomness amount in the response, 0 low 1 high</param>
-    private static async Task<string> callGptApi(string prompt, string[] stopSequences, int max_tokens = 128, double temperature = 0)
+    private static async Task<string> callGptApi(string endpoint, string prompt, string[] stopSequences, int max_tokens = 128, double temperature = 0)
     {
         // create request
-        var request = new HttpRequestMessage(HttpMethod.Post, davinciEndpoint);
+        var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
         
         // Add the json data via a serialized anonymous class
         request.Content = JsonContent.Create(new {
@@ -87,10 +87,11 @@ public static class GPT3Inferencing
     /// <param name="stopSequence">The single stop sequences</param>
     /// <param name="max_tokens">The max number of tokens in the response</param>
     /// <param name="temperature">The randomness amount in the response, 0 low 1 high</param>
-    private static async Task<string> callGptApi(string prompt, string stopSequence, int max_tokens = 128, double temperature = 0)
+    private static async Task<string> callGptApi(string endpoint, string prompt, string stopSequence, int max_tokens = 128, double temperature = 0)
     {
         return await callGptApi(
-            prompt: prompt, 
+            endpoint: endpoint,
+            prompt: prompt,
             stopSequences: new string[]{stopSequence}, 
             max_tokens: max_tokens, 
             temperature: temperature);
@@ -103,7 +104,7 @@ public static class GPT3Inferencing
     /// <returns></returns>
     public static async Task<string> MakeInference(GPT3InferencePrompt prompt)
     {
-        return await callGptApi(prompt.BuildPrompt(), "\n");
+        return await callGptApi(davinciEndpoint, prompt.BuildPrompt(), "\n");
     }
 
     /// <summary>
@@ -125,9 +126,23 @@ public static class GPT3Inferencing
 
         prompt.Append("Summary:\n");
         
-        return await callGptApi(prompt.ToString(), "\"\"\"");
+        return await callGptApi(davinciInstructEndpoint, prompt.ToString(), "\"\"\"");
     }
 
-    
+    /// <summary>
+    /// Summarize a page given the pageTitle and pageText
+    /// </summary>
+    /// <param name="pageTitle"></param>
+    /// <param name="pageText"></param>
+    /// <returns></returns>
+    public static async Task<string> SummarizeNytCnn(string? seed, string data)
+    {
+        StringBuilder prompt = new(seed);
 
+        prompt.Append($"Data:\n{data}\n");
+
+        prompt.Append("Summary:\n");
+        
+        return await callGptApi(davinciEndpoint, prompt.ToString(), "\"\"\"");
+    }
 }
