@@ -48,7 +48,7 @@ public static class GPT3Inferencing
     /// <param name="stopSequences">The array of stop sequences</param>
     /// <param name="max_tokens">The max number of tokens in the response</param>
     /// <param name="temperature">The randomness amount in the response, 0 low 1 high</param>
-    private static async Task<string> callGptApi(string endpoint, string prompt, string[] stopSequences, int max_tokens = 128, double temperature = 0)
+    private static async Task<string> callGptApi(string endpoint, string prompt, string[] stopSequences, int max_tokens = 64, double temperature = 0)
     {
         // create request
         var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
@@ -66,6 +66,32 @@ public static class GPT3Inferencing
     
         // send the actual request
         var response = await client.SendAsync(request);
+
+        // if bad request try shrinking until prompt gets to an unreasonably short length
+        while (prompt.Length > 2000 && response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            var newRequest = new HttpRequestMessage(HttpMethod.Post, endpoint);
+
+            Console.WriteLine("Attempting to shrink prompt.");
+
+            // shrink prompt by 20%
+            int newLength = (int)(prompt.Length * 0.8);
+            prompt = prompt.Substring(0, newLength);
+
+            // redo this
+            newRequest.Content = JsonContent.Create(new {
+                prompt = prompt,
+                max_tokens = max_tokens,
+                temperature = temperature,
+                stop = stopSequences,
+            });
+
+            // Add the authorization key
+            newRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await openAiApiKey);
+
+            // resend the request
+            response = await client.SendAsync(newRequest);
+        }
 
         // check that the response is good
         if (response.StatusCode != System.Net.HttpStatusCode.OK) {
