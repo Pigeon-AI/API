@@ -48,7 +48,8 @@ public static class GPT3Inferencing
     /// <param name="stopSequences">The array of stop sequences</param>
     /// <param name="max_tokens">The max number of tokens in the response</param>
     /// <param name="temperature">The randomness amount in the response, 0 low 1 high</param>
-    private static async Task<string> callGptApi(string endpoint, string prompt, string[] stopSequences, int max_tokens = 64, double temperature = 0)
+    /// <returns>String response if successful, null otherwise</returns>
+    private static async Task<string?> callGptApi(string endpoint, string prompt, string[] stopSequences, int max_tokens = 64, double temperature = 0)
     {
         // create request
         var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
@@ -68,30 +69,12 @@ public static class GPT3Inferencing
         var response = await client.SendAsync(request);
 
         // if bad request try shrinking until prompt gets to an unreasonably short length
-        while (prompt.Length > 2000 && response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
         {
-            var newRequest = new HttpRequestMessage(HttpMethod.Post, endpoint);
-
-            Console.WriteLine("Attempting to shrink prompt.");
-
-            // shrink prompt by 20%
-            int newLength = (int)(prompt.Length * 0.8);
-            prompt = prompt.Substring(0, newLength);
-
-            // redo this
-            newRequest.Content = JsonContent.Create(new {
-                prompt = prompt,
-                max_tokens = max_tokens,
-                temperature = temperature,
-                stop = stopSequences,
-            });
-
-            // Add the authorization key
-            newRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await openAiApiKey);
-
-            // resend the request
-            response = await client.SendAsync(newRequest);
+            // return null to signify prompt is too long and got an error
+            return null;
         }
+
 
         // check that the response is good
         if (response.StatusCode != System.Net.HttpStatusCode.OK) {
@@ -113,7 +96,8 @@ public static class GPT3Inferencing
     /// <param name="stopSequence">The single stop sequences</param>
     /// <param name="max_tokens">The max number of tokens in the response</param>
     /// <param name="temperature">The randomness amount in the response, 0 low 1 high</param>
-    private static async Task<string> callGptApi(string endpoint, string prompt, string stopSequence, int max_tokens = 128, double temperature = 0)
+    /// <returns>String response if successful, null otherwise</returns>
+    private static async Task<string?> callGptApi(string endpoint, string prompt, string stopSequence, int max_tokens = 128, double temperature = 0)
     {
         return await callGptApi(
             endpoint: endpoint,
@@ -130,7 +114,25 @@ public static class GPT3Inferencing
     /// <returns></returns>
     public static async Task<string> MakeInference(GPT3InferencePrompt prompt)
     {
-        return await callGptApi(davinciEndpoint, prompt.BuildPrompt(), "\n");
+        // call the api
+        string? result = await callGptApi(davinciEndpoint, prompt.BuildPrompt(), "\n");
+
+        // if null try redoing it with a shorter prompt until we get an actual response
+        while (result == null && prompt.SeedPrompts.Count > 3)
+        {
+            // remove last prompt
+            prompt.SeedPrompts.RemoveAt(prompt.SeedPrompts.Count - 1);
+
+            // try again
+            result = await callGptApi(davinciEndpoint, prompt.BuildPrompt(), "\n");
+        }
+
+        if (result == null)
+        {
+            throw new GPTPromptException("Prompt was still too long even after reducing down to only 3 seeds");
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -152,6 +154,31 @@ public static class GPT3Inferencing
 
         prompt.Append("Summary:\n");
         
-        return await callGptApi(davinciInstructEndpoint, prompt.ToString(), "\"\"\"");
+        string? result = await callGptApi(davinciInstructEndpoint, prompt.ToString(), "\"\"\"");
+
+        // if null try redoing it with a shorter prompt until we get an actual response
+        // minimum pageText to try of 2000 because if that doesn't work something's very wrong
+        while (result == null && pageText.Length > 2000)
+        {
+            prompt.Clear();
+            prompt.Append("Given a website title and some text from the website, provide a one sentence summary\n\n");
+
+            if (pageTitle != null)
+            {
+                prompt.Append($"Title:\n{pageTitle}\n");
+            }
+            prompt.Append($"Text:\n{pageText}\n");
+
+            prompt.Append("Summary:\n");
+            
+            result = await callGptApi(davinciInstructEndpoint, prompt.ToString(), "\"\"\"");
+        }
+
+        if (result == null)
+        {
+            throw new GPTPromptException("I don't really know how this is possible");
+        }
+
+        return result;
     }
 }
