@@ -18,6 +18,13 @@ public class PromptData : IPromptData
     public string ImageOcrData { get; }
 
     /// <summary>
+    /// The title of this webpage
+    /// </summary>
+    /// <value></value>
+    public string? PageTitle { get; }
+    
+
+    /// <summary>
     /// Main constructor
     /// </summary>
     /// <param name="outerHTML"></param>

@@ -46,7 +46,7 @@ public class UploadController : ControllerBase
             return BadRequest("Malformed ImageUpload");
         }
 
-        string outerHTML = upload.OuterHTML;
+        string outerHTML = await MachineLearning.PreProcessing.StripHTML(upload.OuterHTML);
         (string? pageTitle, string pageText) = await MachineLearning.PreProcessing.ExtractTextFromHtml(upload.PageSource);
 
         // send it to GPT3 to do preliminary summarization

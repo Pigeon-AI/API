@@ -24,12 +24,18 @@ public interface IPromptData
     public string? Inference { get; } 
 
     /// <summary>
+    /// The summary of this dataset if it exists, includes trailing newline character
+    /// </summary>
+    /// <value></value>
+    public string? PageTitle { get; } 
+
+    /// <summary>
     /// Default ToString implementation
     /// </summary>
     /// <returns></returns>
     public string GetAsString()
     {
         // inference includes trailing newline if applicable
-        return $"High Priority\n{OuterHTML}\nLow Priority\n{ImageOcrData}\nSummary\n{Inference}";
+        return $"HTML Data\n{OuterHTML}\nOCR Data\n{ImageOcrData}\nPage Title\n{PageTitle}\nSummary\n{Inference}";
     }
 }
