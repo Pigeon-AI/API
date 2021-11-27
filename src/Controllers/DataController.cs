@@ -65,11 +65,10 @@ public class DataController : ControllerBase
             imageUri: $"image/id/{id}",
             outerHTML: image.OuterHTML,
             imageOcrData: image.ImageOcrData,
-            pageText: image.PageText)
+            pageTitle: image.PageTitle,
+            pageSummary: image.PageSummary)
         {
-            Inference = image.Inference,
-            PageTitle = image.PageTitle,
-            PageSummary = image.PageSummary
+            Inference = image.Inference
         };
     }
 

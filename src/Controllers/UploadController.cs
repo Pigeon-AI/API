@@ -86,8 +86,7 @@ public class UploadController : ControllerBase
             var dbItem = new DatabaseImage(
                 imageData: fileStream.ToArray(),
                 outerHTML: outerHTML,
-                imageOcrData: await ocrData,
-                pageText: pageText)
+                imageOcrData: await ocrData)
             {
                 Inference = null,
                 PageTitle = pageTitle,
