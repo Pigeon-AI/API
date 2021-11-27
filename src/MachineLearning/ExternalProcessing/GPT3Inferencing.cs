@@ -160,6 +160,11 @@ public static class GPT3Inferencing
         // minimum pageText to try of 2000 because if that doesn't work something's very wrong
         while (result == null && pageText.Length > 2000)
         {
+            // shorten the page text
+            int newLength = (int)(pageText.Length * 0.8);
+            pageText = pageText.Substring(0, newLength);
+
+            // reform the prompt
             prompt.Clear();
             prompt.Append("Given a website title and some text from the website, provide a one sentence summary\n\n");
 
@@ -171,6 +176,7 @@ public static class GPT3Inferencing
 
             prompt.Append("Summary:\n");
             
+            // resend
             result = await callGptApi(davinciInstructEndpoint, prompt.ToString(), "\"\"\"");
         }
 
