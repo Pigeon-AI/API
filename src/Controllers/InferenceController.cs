@@ -22,13 +22,20 @@ public class InferenceController : ControllerBase
     public InferenceController(ILogger<InferenceController> logger)
     {
         _logger = logger;
+
+        // set the seed cache ID's
+        this.seedCache = new(logger, 
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     }
 
     /// <summary>
     /// The seed ids to grab from the database for use for inference
     /// </summary>
+    /// <remarks>
+    /// Best seeds go to beginning although it doesn't matter much
+    /// </remarks>
     /// <value></value>
-    private readonly ICollection<long> seedIds = new HashSet<long>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    private readonly SeedCache seedCache;
 
     /// <summary>
     /// Upload an image and get an inference on the image content.
@@ -79,7 +86,7 @@ public class InferenceController : ControllerBase
 
         var prompt = new GPT3InferencePrompt
         {
-            SeedPrompts = db.Images.Where(item => seedIds.Contains(item.Id)).ToList(),
+            SeedPrompts = seedCache.Prompts.ToList(),
             NewPrompt = new PromptData(outerHTML: outerHTML, imageOcrData: ocrData, pageTitle: upload.PageTitle)
         };
 
