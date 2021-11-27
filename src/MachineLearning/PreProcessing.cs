@@ -232,7 +232,7 @@ public static class PreProcessing
     /// </remarks>
     /// <param name="html"></param>
     /// <returns>(title, data)</returns>
-    public static async Task<(string?, string)> ExtractTextFromHtml(string html)
+    public static async Task<string> ExtractTextFromHtml(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
@@ -241,14 +241,9 @@ public static class PreProcessing
         await using MemoryStream ms = new ();
         await using StreamWriter sw = new (ms);
 
-        // the title of this webpage, most important
-        string? title = null;
-
         // go through every instance of text in 
         foreach (HtmlNode textNode in doc.DocumentNode.Descendants().Where(node => node.NodeType == HtmlNodeType.Text))
         {
-            bool isTitle = false;
-
             switch (textNode.ParentNode.Name)
             {
                 // don't allow undesirable parent tags to murk up the info
@@ -257,10 +252,6 @@ public static class PreProcessing
                 case "meta":
                 case "cite":
                     continue;
-                
-                case "title":
-                    isTitle = true;
-                    break;
                 
                 default:
                     break;
@@ -284,14 +275,7 @@ public static class PreProcessing
             // only write if non empty
             if (text.Length != 0)
             {
-                // title is special
-                if (isTitle) {
-                    title = text;
-                }
-                else
-                {
-                    sw.Write(text + " ");
-                }
+                sw.Write(text + " ");
             }
         }
 
@@ -303,7 +287,7 @@ public static class PreProcessing
         // read as string
         using var sr = new StreamReader(ms);
 
-        return (title ?? "", await sr.ReadToEndAsync());
+        return await sr.ReadToEndAsync();
     }
 
     /// <summary>

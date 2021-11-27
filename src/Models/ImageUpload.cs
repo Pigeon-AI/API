@@ -58,4 +58,10 @@ public class ImageUpload
     /// </summary>
     /// <value></value>
     public string? PageSource { get; set; }
+
+    /// <summary>
+    /// The entire html of the webpage
+    /// </summary>
+    /// <value></value>
+    public string? PageTitle { get; set; }
 }

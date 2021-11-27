@@ -32,7 +32,7 @@ public class DatabaseImage : IPromptData
     /// <summary>
     /// The title of the website
     /// </summary>
-    public string? PageTitle { get; set; } = null;
+    public string PageTitle { get; set; } = null!;
 
     /// <summary>
     /// The rest of the raw text data from this website
@@ -42,7 +42,7 @@ public class DatabaseImage : IPromptData
     /// <summary>
     /// The Summary of the webpage, might not exist if there are issues
     /// </summary>
-    public string? PageSummary { get; set; } = null;
+    public string PageSummary { get; set; } = null!;
 
     /// <summary>
     /// Any inference we made on this image

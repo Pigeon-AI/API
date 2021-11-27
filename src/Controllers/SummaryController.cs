@@ -33,6 +33,7 @@ public class SummaryController : ControllerBase
     public async Task<ActionResult<string>> Post(SummaryUpload upload)
     {
         if (String.IsNullOrEmpty(upload.PageSource) ||
+            String.IsNullOrEmpty(upload.PageTitle) ||
             String.IsNullOrEmpty(upload.PageUrl))
         {
             this._logger.LogDebug("Received bad request.");
@@ -56,7 +57,8 @@ public class SummaryController : ControllerBase
         // {
         //     return BadRequest("Summarizing only works for nytimes and cnn at the moment.");
         // }
-        (string? pageTitle, string pageText) = await MachineLearning.PreProcessing.ExtractTextFromHtml(upload.PageSource);
+        string pageText = await MachineLearning.PreProcessing.ExtractTextFromHtml(upload.PageSource);
+        string pageTitle = upload.PageTitle;
 
         // send it to GPT3 to do preliminary summarization
         string summary = await MachineLearning.ExternalProcessing.GPT3Inferencing.SummarizePage(

@@ -21,7 +21,7 @@ public class PromptData : IPromptData
     /// The title of this webpage
     /// </summary>
     /// <value></value>
-    public string? PageTitle { get; }
+    public string PageTitle { get; }
     
 
     /// <summary>
@@ -29,10 +29,11 @@ public class PromptData : IPromptData
     /// </summary>
     /// <param name="outerHTML"></param>
     /// <param name="imageOcrData"></param>
-    public PromptData(string outerHTML, string imageOcrData)
+    public PromptData(string outerHTML, string imageOcrData, string pageTitle)
     {
         this.OuterHTML = outerHTML;
         this.ImageOcrData = imageOcrData;
+        this.PageTitle = pageTitle;
     }
 
     /// <summary>

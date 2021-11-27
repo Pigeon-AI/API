@@ -40,6 +40,7 @@ public class InferenceController : ControllerBase
     {
         if (String.IsNullOrEmpty(upload.ImageUri) ||
             String.IsNullOrEmpty(upload.OuterHTML) ||
+            String.IsNullOrEmpty(upload.PageTitle) ||
             upload.ElementCenterX < 0 ||
             upload.ElementCenterY < 0 ||
             upload.ElementWidth < 0 ||
@@ -79,7 +80,7 @@ public class InferenceController : ControllerBase
         var prompt = new GPT3InferencePrompt
         {
             SeedPrompts = db.Images.Where(item => seedIds.Contains(item.Id)).ToList(),
-            NewPrompt = new PromptData(outerHTML: outerHTML, imageOcrData: ocrData)
+            NewPrompt = new PromptData(outerHTML: outerHTML, imageOcrData: ocrData, pageTitle: upload.PageTitle)
         };
 
         this._logger.LogDebug(prompt.BuildPrompt());

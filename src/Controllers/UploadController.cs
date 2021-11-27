@@ -35,6 +35,7 @@ public class UploadController : ControllerBase
         if (String.IsNullOrEmpty(upload.ImageUri) ||
             String.IsNullOrEmpty(upload.OuterHTML) ||
             String.IsNullOrEmpty(upload.PageSource) ||
+            String.IsNullOrEmpty(upload.PageTitle) ||
             upload.ElementCenterX < 0 ||
             upload.ElementCenterY < 0 ||
             upload.ElementWidth < 0 ||
@@ -47,7 +48,8 @@ public class UploadController : ControllerBase
         }
 
         string outerHTML = await MachineLearning.PreProcessing.StripHTML(upload.OuterHTML);
-        (string? pageTitle, string pageText) = await MachineLearning.PreProcessing.ExtractTextFromHtml(upload.PageSource);
+        string pageTitle = upload.PageTitle;
+        string pageText = await MachineLearning.PreProcessing.ExtractTextFromHtml(upload.PageSource);
 
         // send it to GPT3 to do preliminary summarization
         Task<string> summary = MachineLearning.ExternalProcessing.GPT3Inferencing.SummarizePage(
