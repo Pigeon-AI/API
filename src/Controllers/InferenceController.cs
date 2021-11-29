@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using PigeonAPI.Models;
 using SixLabors.ImageSharp;
+using System.IO;
 
 namespace PigeonAPI.Controllers;
 
@@ -25,7 +26,8 @@ public class InferenceController : ControllerBase
 
         // set the seed cache ID's
         this.seedCache = new(logger, 
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+            1, 2, 3, 5, 6, 7, 8, 9, 10,
+            11, 12, 13, 16, 19);
     }
 
     /// <summary>
